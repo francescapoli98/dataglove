@@ -1,7 +1,8 @@
-# Robotics [ROB] 
-Academic Year 2023/24 
+# Robotics [ROB]
 
-<img src="https://apre.it/wp-content/uploads/2021/01/logo_uni-pisa.png" width="200" />
+Academic Year 2023/24
+
+![University of Pisa Logo](https://apre.it/wp-content/uploads/2021/1/logo_uni-pisa.png)
 
 🤖 Classification of data grasped from a physical robotic glove.
 
