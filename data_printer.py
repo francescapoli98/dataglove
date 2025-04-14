@@ -26,7 +26,7 @@ class PrintNode:
             # Use timestamped filename to avoid overwriting
             # Create timestamped log file in that directory
             timestamp = time.strftime("%Y%m%d_%H%M%S")
-            self.csv_file = os.path.join(logs_dir, f"sfera_{timestamp}.csv")
+            self.csv_file = os.path.join(logs_dir, f"borraccia_{timestamp}.csv")
             # Create the CSV file and write the header
             with open(self.csv_file, "w") as f:
                 f.write("timestamp,joint_name,position,velocity,effort\n")
