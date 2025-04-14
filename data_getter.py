@@ -4,6 +4,7 @@ import serial
 import numpy as np
 import math
 import threading
+import csv
 import transforms3d.euler as euler
 from sensor_msgs.msg import JointState
 
@@ -26,7 +27,7 @@ class GloveNode:
         # Read parameters
         self.port = rospy.get_param('~port', '/dev/ttyUSB0')
         self.baudrate = rospy.get_param('~baudrate', 230400)
-        self.pub_rate = rospy.get_param('~rate', 1)
+        self.pub_rate = rospy.get_param('~rate', 50)
         
         # Serial connection
         self.serial_conn = serial.Serial(self.port, self.baudrate, timeout=0.1)
@@ -45,8 +46,11 @@ class GloveNode:
             'press_ring', 'press_little'
         ]
         self.joint_state.position = [0.0] * len(self.joint_state.name)
+        
+        
         # self.lock = threading.Lock()
         # self.__sensors = [0.0] * 23  # replace 23 with actual sensor count
+        
     def send_start_packet(self, packet_type):
         """
         Send start streaming packet
@@ -95,7 +99,7 @@ class GloveNode:
     def read_data(self):
         """Reads data from the glove and updates joint states."""
         try:
-            data = self.serial_conn.read(50)  
+            data = self.serial_conn.read(len(self.joint_state.name))  
             # rospy.loginfo(f"Raw data: {data}")
             # if self.serial_conn:
             #     rospy.loginfo("Serial connection is open")
@@ -103,7 +107,7 @@ class GloveNode:
                 self.joint_state.position = self.decode_sensor_values(data)
                 self.joint_state.header.stamp = rospy.Time.now()
                 self.pub.publish(self.joint_state)
-                rospy.loginfo(self.joint_state)
+                # rospy.loginfo(self.joint_state)
         except serial.SerialException as e:
             rospy.logerr(f"Serial error: {e}")
         
@@ -128,6 +132,7 @@ class GloveNode:
         """
         # with self.lock:
             # Example: return dummy sensor values from data, you’ll need to implement actual decoding
+        # rospy.loginfo(f"Raw data: {data}")
         return [float(i) for i in data]
     
     def run(self):

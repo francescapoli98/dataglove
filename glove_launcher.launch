@@ -1,7 +1,7 @@
 <launch>
-    <node name="data_getter" pkg="dataglove" type="data_getter.py" output="screen"/>
+    <node name="data_getter" pkg="dataglove" type="data_getter.py" output="screen" args="record"/>
     <!-- publisher: takes the data stream from the glove and publishes it as a ROS topic. -->
-    <node name="data_printer" pkg="dataglove" type="data_printer.py" output="screen"/> 
+    <node name="data_printer" pkg="dataglove" type="data_printer.py" output="screen"  args="record"/> 
     <!-- temporary subscriber: takes the data stream from the glove and prints it to the screen. -->
     
     
