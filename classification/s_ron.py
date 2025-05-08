@@ -15,18 +15,14 @@ from typing import (
 
 import torch
 from torch import nn
-
-import snntorch as snn
-from snntorch import surrogate
-
 import numpy as np
 
-from acds.archetypes.utils import (
-    get_hidden_topology,
-    spectral_norm_scaling,
-)
+# from acds.archetypes.utils import (
+#     get_hidden_topology,
+#     spectral_norm_scaling,
+# )
 
-from spiking_arch.snn_utils import *
+from classification.utils import *
 
 
 

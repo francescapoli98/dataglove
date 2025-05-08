@@ -6,7 +6,7 @@ import math
 import threading
 import csv
 from std_msgs.msg import Header 
-from DataPrint.msg import DataPrint
+from dataglove.msg import DataPrint
 # import transforms3d.euler as euler        #### I don't think we need this
 # from sensor_msgs.msg import JointState    ### firstly used that, realised it's not correct
 
@@ -57,19 +57,29 @@ class GloveNode:
         run():
             Main loop of the node. Sends start packets and continuously reads and publishes data.
     """
+    __np_int16_dtype = np.dtype(np.int16).newbyteorder(
+        ">"
+    )  
+    __np_int32_dtype = np.dtype(np.int32).newbyteorder(
+        ">"
+    ) 
+
     def __init__(self):
         rospy.init_node('data_getter', anonymous=True)
+
+        self.__id = 0
+        self.__packet_tick = 0
         
         # Read parameters
         self.port = rospy.get_param('~port', '/dev/ttyUSB0')
         self.baudrate = rospy.get_param('~baudrate', 230400)
-        self.pub_rate = rospy.get_param('~rate', 50)
+        self.pub_rate = rospy.get_param('~rate', 1)
         
         # Serial connection
         self.serial_conn = serial.Serial(self.port, self.baudrate, timeout=0.1)
         
         # ROS Publisher
-        self.pub = rospy.Publisher('glove_data', DataPrint, queue_size=10)
+        self.pub = rospy.Publisher('glove_data', DataPrint, queue_size=1)
         # self.pub = rospy.Publisher('glove_joint_states', JointState, queue_size=10)
         
         # Sensor data
@@ -77,15 +87,22 @@ class GloveNode:
         # self.joint_state.name = [
         self.print_data = DataPrint()
         self.print_data.name = [
-            'thumb_1', 'thumb_2', 'index_1', 'index_2',
-            'middle_1', 'middle_2', 'ring_1', 'ring_2',
-            'little_1', 'little_2', 'palm_arch', 'thumb_crossover',
-            'abd_thumb', 'abd_index', 'abd_ring', 'abd_little',
+            # 'thumb_1', 'thumb_2', 'index_1', 'index_2',
+            # 'middle_1', 'middle_2', 'ring_1', 'ring_2',
+            # 'little_1', 'little_2', 'palm_arch', 'thumb_crossover',
+            # 'abd_thumb', 'abd_index', 'abd_ring', 'abd_little',
+            # 'press_thumb', 'press_index', 'press_middle',
+            # 'press_ring', 'press_little'
+            'thumb_2', 'thumb_1', 'index_2', 'index_1',
+            'middle_2', 'middle_1', 'ring_2', 'ring_1',
+            'little_2', 'little_1', 'palm_arch',
+            'nop', 'thumb_crossover','nop', #nop to be deleted
             'press_thumb', 'press_index', 'press_middle',
-            'press_ring', 'press_little'
+            'press_ring', 'press_little',
+            'abd_thumb', 'abd_index', 'abd_ring', 'abd_little'    
         ]
         # self.joint_state.position = [0.0] * len(self.joint_state.name)
-        self.print_data.position = [0.0] * len(self.print_data.name)
+        self.print_data.value = [0.0] * len(self.print_data.name) #np.zeros(23, dtype=np.int16)
         
         
         # self.lock = threading.Lock()
@@ -165,7 +182,9 @@ class GloveNode:
             - The `self.pub` publisher is used to publish the `print_data` message.
         """
         try:
-            data = self.serial_conn.read(len(self.joint_state.name))  
+            data = self.serial_conn.read(len(self.print_data.name)*2)  
+            # rospy.loginfo(f"Received {len(data)} bytes: {data.hex()}")
+
             # rospy.loginfo(f"Raw data: {data}")
             # if self.serial_conn:
             #     rospy.loginfo("Serial connection is open")
@@ -176,28 +195,17 @@ class GloveNode:
                 # self.pub.publish(self.joint_state)
                 # rospy.loginfo(self.joint_state)
                 #### PRINT DATA
-                self.print_data.position = self.decode_sensor_values(data)
+                # self.print_data.value = self.decode_sensor_values(data)
+                self.print_data.value = self.read_stream() #data
+                
                 self.print_data.header.stamp = rospy.Time.now()
+                rospy.loginfo(self.print_data)
                 self.pub.publish(self.print_data)
                 # rospy.loginfo(self.print_data)
         except serial.SerialException as e:
             rospy.logerr(f"Serial error: {e}")
         
-    # # def decode_sensor_values(self, data): 
-    # #     """Decodes raw data from the glove into sensor values."""
-    # #     # Convert data
-    # #     """
-    # #     Get sensor value
-    # #     :param index index of the requested finger
-    # #     :return sensor measure
-    # #     :raises ValueError
-    # #     """
 
-    # #     if 0 <= index < 23:
-    # #         raise ValueError("No such sensor")
-
-    # #     with self.lock:
-    # #         return self.__sensors[index]
     def decode_sensor_values(self, data):
         """
         Decodes raw sensor data into a list of floating-point values.
@@ -215,7 +223,118 @@ class GloveNode:
         # with self.lock:
             # Example: return dummy sensor values from data, you’ll need to implement actual decoding
         # rospy.loginfo(f"Raw data: {data}")
-        return [float(i) for i in data]
+        return [int(i) for i in data]
+
+
+    def read_stream(self):
+        """
+        Read incoming packets
+        Set new_packet_available flag if a new packet has been received
+        :return 0 if ok, 1 otherwise
+        """
+        # |PKT_HEADER|PKT_CMD_START|data_length|payload        |BCC|PKT_ENDCAR|
+        #                                      |pkt_type|values|
+        # |    1     |     1       |     1     |<data_length>-2| 1 |    1     |
+
+        try:
+            bcc = 0  # Block check character
+
+            header_buffer = self.serial_conn.read(1)
+
+            if not header_buffer or header_buffer[0] != PKT_HEADER:
+                return 0
+
+            bcc += header_buffer[0]
+
+            # header found
+            header_buffer = self.serial_conn.read(2)
+
+            if not header_buffer or (header_buffer[0] != PKT_CMD_START_SAMPLING):
+                return 0
+
+            data_length = header_buffer[1]
+
+            bcc += sum(header_buffer) & 0xFF  # mod 255
+            bcc &= 0xFF
+
+            # read data
+            data_buffer = self.serial_conn.read(data_length)
+
+            if len(data_buffer) != data_length:
+                return 0
+
+            # get payload
+            payload_buffer = data_buffer[: data_length - 2]
+            bcc += sum(payload_buffer) & 0xFF
+            bcc &= 0xFF
+
+            if bcc != data_buffer[data_length - 2]:  # check bcc
+                return 0  # bcc doesn't match
+
+            return np.copy(self._update_values(payload_buffer))
+            # return np.copy(self.print_data.value) 
+
+            # set flag, main application can read new values
+            # self.__new_packet_available = True
+        except Exception as e:
+            print(e)
+        #     return 1
+        # else:
+        #     self.pkt_count += 1
+
+        # return 0
+
+    def _update_values(self, packet):
+        with self.lock:
+            offset = 0
+            if (pkt_type := packet[offset]) == PKT_TYPE_QUAT_FINGER:  # pkt_type
+                offset += 1
+                # ID
+                size = 2
+                count = 1
+                self.__id = int.from_bytes(
+                    packet[offset : offset + size], byteorder="big"
+                )
+                offset += count * size
+
+                # Package Tick
+                size = 4
+                count = 1
+                self.__packet_tick = int.from_bytes(
+                    packet[offset : offset + size], byteorder="big"
+                )
+                offset += count * size
+
+                # read 2 quaternions (8 32-bit values)
+                # wrist and hand
+                count = 8
+                size = self.__np_int16_dtype.itemsize
+                wrist_and_hands_quats = (
+                    np.frombuffer(
+                        packet, count=count, offset=offset, dtype=self.__np_int32_dtype
+                    )
+                    / 65536.0
+                )
+                self.__quat_wrist[:] = wrist_and_hands_quats[: count // 2]
+                self.__quat_hand[:] = wrist_and_hands_quats[count // 2 :]
+                offset += count * size
+
+                # read 23 sensor values (23 2-Bytes values)
+                count = 23
+                size = self.__np_int16_dtype.itemsize
+                self.__sensors[:] = np.frombuffer(
+                    packet, count=count, offset=offset, dtype=self.__np_int16_dtype
+                )
+
+            elif pkt_type == PKT_TYPE_RAW_FINGER:
+                pass
+
+            # print("-----------------\n")
+            # print(f"|{" ".join([f'{i:02x}' for i in packet])}|")
+            # self.__print_values()
+            # print("-----------------\n")
+
+        return 0
     
     def run(self):
         """

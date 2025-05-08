@@ -14,12 +14,13 @@ from snntorch import surrogate
 import numpy as np
 import random
 
-from acds.archetypes.utils import (
-    get_hidden_topology,
-    spectral_norm_scaling,
-)
+# from acds.archetypes.utils import (
+#     get_hidden_topology,
+#     spectral_norm_scaling,
+# )
 
-from spiking_arch.snn_utils import *
+from classification.utils import *
+# from spiking_arch.snn_utils import *
 
 
 

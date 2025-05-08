@@ -11,15 +11,7 @@ from sklearn import preprocessing
 from sklearn.linear_model import LogisticRegression
 from tqdm import tqdm
 
-
-from acds.archetypes import (
-    DeepReservoir,
-    RandomizedOscillatorsNetwork,
-    PhysicallyImplementableRandomizedOscillatorsNetwork,
-    MultistablePhysicallyImplementableRandomizedOscillatorsNetwork
-)
-
-# from spiking_arch.lsm_baseline import LiquidRON
+from classification.lsm_baseline import LiquidRON
 from classification.s_ron import SpikingRON
 from classification.mixed_ron import MixedRON
 
@@ -37,34 +29,30 @@ parser.add_argument(
 )
 parser.add_argument("--batch", type=int, default=16, help="batch size")
 parser.add_argument(
-    "--dt", type=float, default=0.042, help="step size <dt> of the coRNN"
+    "--dt", type=float, default=0.042, help="step size <dt>"
 )
 parser.add_argument(
-    "--gamma", type=float, default=2.7, help="y controle parameter <gamma> of the coRNN"
+    "--gamma", type=float, default=2.7, help="y controle parameter <gamma>"
 )
 parser.add_argument(
     "--epsilon",
     type=float,
     default=4.7,
-    help="z controle parameter <epsilon> of the coRNN",
+    help="z controle parameter <epsilon>",
 )
 parser.add_argument(
     "--gamma_range",
     type=float,
     default=2.7,
-    help="y controle parameter <gamma> of the coRNN",
+    help="y controle parameter <gamma>",
 )
 parser.add_argument(
     "--epsilon_range",
     type=float,
     default=4.7,
-    help="z controle parameter <epsilon> of the coRNN",
+    help="z controle parameter <epsilon>",
 )
-parser.add_argument("--cpu", action="store_true")
-parser.add_argument("--esn", action="store_true")
-parser.add_argument("--ron", action="store_true")
-parser.add_argument("--pron", action="store_true")
-parser.add_argument("--mspron", action="store_true")
+
 
 parser.add_argument("--sron", action="store_true")
 parser.add_argument("--mixron", action="store_true")
@@ -95,13 +83,13 @@ parser.add_argument(
 )
 
 parser.add_argument("--threshold", type=float, default=1, help="threshold")
-# parser.add_argument("--resistance", type=float, default=7.0, help="resistance")
-# parser.add_argument("--capacitance", type=float, default=0.005, help="capacitance")
 parser.add_argument("--rc", type=float, default=5.0, help="tau")
 parser.add_argument("--reset", type=float, default=0.01, help="reset")
 parser.add_argument("--bias", type=float, default=0.0, help="bias")
 parser.add_argument("--perc", type=float, default=0.5, help="percentage of neurons")
 
+# parser.add_argument("--use_dvs", action="store_true")
+# parser.add_argument("--use_nmnist", action="store_true")
 
 args = parser.parse_args()
 
@@ -141,7 +129,6 @@ device = (
 )
 
 n_inp = 1568
-# n_out = 10
 
 gamma = (args.gamma - args.gamma_range / 2.0, args.gamma + args.gamma_range / 2.0)
 epsilon = (
@@ -151,51 +138,7 @@ epsilon = (
 
 train_accs, valid_accs, test_accs = [], [], []
 for i in range(args.trials):
-    if args.esn:
-        model = DeepReservoir(
-            n_inp,
-            tot_units=args.n_hid,
-            spectral_radius=args.rho,
-            input_scaling=args.inp_scaling,
-            connectivity_recurrent=int((1 - args.sparsity) * args.n_hid),
-            connectivity_input=args.n_hid,
-            leaky=args.leaky,
-        ).to(device)
-    elif args.ron:
-        model = RandomizedOscillatorsNetwork(
-            n_inp,
-            args.n_hid,
-            args.dt,
-            gamma,
-            epsilon,
-            args.rho,
-            args.inp_scaling,
-            topology=args.topology,
-            sparsity=args.sparsity,
-            reservoir_scaler=args.reservoir_scaler,
-            device=device,
-        ).to(device)
-    elif args.pron:
-        model = PhysicallyImplementableRandomizedOscillatorsNetwork(
-            n_inp,
-            args.n_hid,
-            args.dt,
-            gamma,
-            epsilon,
-            args.inp_scaling,
-            device=device
-        ).to(device)
-    elif args.mspron:
-        model = MultistablePhysicallyImplementableRandomizedOscillatorsNetwork(
-            n_inp,
-            args.n_hid,
-            args.dt,
-            gamma,
-            epsilon,
-            args.inp_scaling,
-            device=device
-        ).to(device)
-    elif args.sron:
+    if args.sron:
         model = SpikingRON(
             n_inp,
             args.n_hid,
@@ -204,10 +147,7 @@ for i in range(args.trials):
             epsilon,
             args.rho,
             args.inp_scaling,
-            # spiking
             args.threshold,
-            # args.resistance,
-            # args.capacitance,
             args.rc,
             args.reset,
             args.bias,
@@ -226,7 +166,6 @@ for i in range(args.trials):
             epsilon,
             args.rho,
             args.inp_scaling,
-            # spiking
             args.threshold,
             args.rc,
             args.reset,
@@ -251,10 +190,7 @@ for i in range(args.trials):
             epsilon,
             args.rho,
             args.inp_scaling,
-            #add last things here
             args.threshold,
-            # args.resistance,
-            # args.capacitance,
             args.rc,
             args.reset,
             args.bias,
@@ -267,26 +203,22 @@ for i in range(args.trials):
     else:
         raise ValueError("Wrong model choice.")
     
-    train_loader, valid_loader, test_loader = get_nmnist_data(
+
+# if args.use_dvs:
+    train_loader, valid_loader, test_loader = get_data(
         args.dataroot, args.batch, args.batch
     )
 
-    
     activations, ys = [], []
     
     # for batch in next(iter(train_loader)):
     #     images, labels = batch[0].float(), batch[1].float() # Access only the first two items
     for images, labels in train_loader:
         images = images.float().to(device)
-        # print('images: ', images.shape, '\nlabels: ', labels.shape)
-        # images, labels = batch[0].float(), batch[1].float()
-        # images = images.view(images.shape[0], -1).unsqueeze(-1)
         images = torch.flatten(images, start_dim=2)
-        # print('new images shape: ', images.shape)
         
         ys.append(labels.cpu()) 
         
-        # print('images type: ', type(images))
         if args.liquidron:
             output, spk = model(images)
         else:
@@ -305,7 +237,7 @@ for i in range(args.trials):
         spk = torch.stack(spk)    
         u = torch.stack(u)
         velocity = torch.stack(velocity)
-        print('shapes of tensors: \noutput: ', output.shape, '\nspikes: ', spk.shape, '\nmembrane potential: ', u.shape, '\nvelocity: ', velocity.shape, '\nx: ', images.shape)
+        # print('shapes of tensors: \noutput: ', output.shape, '\nspikes: ', spk.shape, '\nmembrane potential: ', u.shape, '\nvelocity: ', velocity.shape, '\nx: ', images.shape)
         plot_dynamics(u, spk, images, args.resultroot, output=output, velocity=velocity)
     
     activations = torch.cat(activations, dim=0).detach().numpy() # activations = torch.cat(activations, dim=0).numpy()  
@@ -313,7 +245,7 @@ for i in range(args.trials):
     # print("Activations shape:", activations.shape)
     # print("Labels shape:", ys.shape)  
 
-    scaler = preprocessing.StandardScaler()#.fit(activations)
+    scaler = preprocessing.StandardScaler()
     
     activations = scaler.fit_transform(activations) 
     # activations = scaler.transform(activations) 
@@ -328,17 +260,15 @@ for i in range(args.trials):
 simple_plot(train_accs, valid_accs, test_accs, args.resultroot)
 
 
-
-if args.ron:
-    f = open(os.path.join(args.resultroot, f"nMNIST_log_RON_{args.topology}{args.resultsuffix}.txt"), "a")
-elif args.sron:
-    f = open(os.path.join(args.resultroot, f"nMNIST_log_SRON{args.resultsuffix}.txt"), "a")
+if args.sron:
+    f = open(os.path.join(args.resultroot, f"log_SRON{args.resultsuffix}.txt"), "a")
 elif args.liquidron:
-    f = open(os.path.join(args.resultroot, f"nMNIST_log_LiquidRON{args.resultsuffix}.txt"), "a")
+    f = open(os.path.join(args.resultroot, f"log_LiquidRON{args.resultsuffix}.txt"), "a")
 elif args.mixron:
-    f = open(os.path.join(args.resultroot, f"nMNIST_log_MixedRON{args.resultsuffix}.txt"), "a")
+    f = open(os.path.join(args.resultroot, f"log_MixedRON{args.resultsuffix}.txt"), "a")
 else:
     raise ValueError("Wrong model choice.")
+
 
 
 

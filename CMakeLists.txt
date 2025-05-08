@@ -7,10 +7,11 @@ project(dataglove)
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
+##FP: message_generation is for custom messages
 find_package(catkin REQUIRED COMPONENTS
   rospy
   std_msgs
-  message_generation ##custom
+  message_generation
 )
 
 ## System dependencies are found with CMake's conventions
@@ -104,7 +105,7 @@ generate_messages(
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES dataglove
-#  CATKIN_DEPENDS rospy std_msgs
+ CATKIN_DEPENDS rospy std_msgs message_runtime
 #  DEPENDS system_lib
 )
 
