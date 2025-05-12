@@ -4,6 +4,8 @@ import pandas as pd
 import torch
 import torchvision
 from torch.utils.data import DataLoader
+from dataglove.vmg30 import *
+
 
 def get_data(
     root: os.PathLike, bs_train: int, bs_test: int):
