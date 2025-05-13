@@ -17,9 +17,9 @@ class GloveNode:
     def __init__(self):
         rospy.init_node('data_getter', anonymous=True)
         # Read parameters
-        self.port = rospy.get_param('~port', '/dev/ttyUSB0')
-        self.baudrate = rospy.get_param('~baudrate', 230400)
-        self.pub_rate = rospy.get_param('~rate', 1)
+        self.port = rospy.get_param('/my_prefix/port')
+        self.baudrate = rospy.get_param('/my_prefix/baudrate')
+        self.pub_rate = rospy.get_param('/my_prefix/rate')
         self.vmg30 = VMG30()
         
         # Serial connection
@@ -39,14 +39,17 @@ class GloveNode:
             'press_ring', 'press_little',
             'abd_thumb', 'abd_index', 'abd_ring', 'abd_little'    
         ]
-        self.print_data.value = [0.0] * len(self.print_data.name)
+        # self.print_data.value = [0.0] * len(self.print_data.name)
     
     def read_data(self):
         try:
-            self.print_data.value = self.vmg30.read_stream() #data
-            
+            self.vmg30.read_stream() #data
+            # rospy.loginfo(self.vmg30.is_new_packet_available())
+            if self.vmg30.is_new_packet_available():
+                self.print_data.value = self.vmg30.sensors
+                self.vmg30.reset_new_packet()
             self.print_data.header.stamp = rospy.Time.now()
-            rospy.loginfo(self.print_data)
+            # rospy.loginfo(self.print_data)
             self.pub.publish(self.print_data)
         except serial.SerialException as e:
             rospy.logerr(f"Serial error: {e}")
@@ -54,12 +57,13 @@ class GloveNode:
     def run(self):
         rate = rospy.Rate(self.pub_rate)
         self.vmg30.send_start_packet(0x0)
-        time.sleep(1) #rate.sleep()
+        time.sleep(1) 
         self.vmg30.send_start_packet(0x1)
-        time.sleep(1) #rate.sleep()
+        time.sleep(1) 
         while not rospy.is_shutdown():
             self.read_data()
             rate.sleep()
+        self.vmg30.close_device()
 
 if __name__ == '__main__':
     try:
@@ -67,68 +71,3 @@ if __name__ == '__main__':
         node.run()
     except rospy.ROSInterruptException:
         pass
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-##################################################################################################
-##################################################################################################
-##################################################################################################
-    # @property
-    # def sensors(self):
-    #     """
-    #     Get a copy of the sensors array
-    #     """
-    #     with self.lock:
-    #         return np.copy(self.__sensors)
-
-    # @property
-    # def quaternion_wrist(self):
-    #     """
-    #     Get a copy of the wrist orientation in quaternion
-    #     """
-    #     with self.lock:
-    #         return np.copy(self.__quat_wrist)
-
-    # @property
-    # def quaternion_hand(self):
-    #     """
-    #     Get a copy of the hand orientation in quaternion
-    #     """
-    #     with self.lock:
-    #         return np.copy(self.__quat_hand)
-
-    # # def __print_values(self):
-    # #     print("Package Tick:", self.__packet_tick)
-    # #     print("Thumb values:", self.__sensors[ThumbPh1R], self.__sensors[ThumbPh2R])
-    # #     print("Index values:", self.__sensors[IndexPh1R], self.__sensors[IndexPh2R])
-    # #     print("Middle values:", self.__sensors[MiddlePh1R], self.__sensors[MiddlePh2R])
-    # #     print("Ring values:", self.__sensors[RingPh1R], self.__sensors[RingPh2R])
-    # #     print("Little values:", self.__sensors[LittlePh1R], self.__sensors[LittlePh2R])
-
-    # #     rpy_wrist = self.quat2rpy(self.__quat_wrist)
-    # #     print(
-    # #         f"Wrist rpy: " f"{rpy_wrist[0]:.3f} {rpy_wrist[1]:.3f} {rpy_wrist[2]:.3f}"
-    # #     )
-    # #     rpy_hand = self.quat2rpy(self.__quat_hand)
-    # #     print(f"Hand rpy: " f"{rpy_hand[0]:.3f} {rpy_hand[1]:.3f} {rpy_hand[2]:.3f}")
-
-    # #     print(
-    # #         f"Wrist quat: "
-    # #         f"{self.__quat_wrist[0]:.3f} {self.__quat_wrist[1]:.3f} {self.__quat_wrist[2]:.3f} {self.__quat_wrist[3]:.3f}"
-    # #     )
-    # #     print(
-    # #         f"Hand quat: "
-    # #         f"{self.__quat_hand[0]:.3f} {self.__quat_hand[1]:.3f} {self.__quat_hand[2]:.3f} {self.__quat_hand[3]:.3f}"
-    # #     )        

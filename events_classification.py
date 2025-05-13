@@ -11,7 +11,7 @@ from sklearn import preprocessing
 from sklearn.linear_model import LogisticRegression
 from tqdm import tqdm
 
-from classification.lsm_baseline import LiquidRON
+from classification.lsm import LiquidStateMachine
 from classification.s_ron import SpikingRON
 from classification.mixed_ron import MixedRON
 

@@ -22,7 +22,7 @@ from classification.utils import *
 
 
 
-class LiquidRON(nn.Module):
+class LiquidStateMachine(nn.Module):
 
     def __init__(
         self,

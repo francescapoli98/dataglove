@@ -16,15 +16,16 @@ class PrintNode:
     def __init__(self, record=False):
         rospy.init_node('data_printer', anonymous=True)
 
-        self.pub_rate = rospy.get_param('~rate', 1)
-        self.lock = threading.Lock()
-        self.record = record ##??
+        self.record = record 
 
         self.sub = rospy.Subscriber('glove_data', DataPrint, self.callback)
         # self.sub = rospy.Subscriber('glove_joint_states', JointState, self.callback)
 
     def callback(self, msg):
         print("\nReceived state:")
+        for i in msg.name, msg.value:
+            print(i)
+
 ################# USA ROSBAG E POI CONVERTI .bag IN .csv ################################
       
     def run(self):
