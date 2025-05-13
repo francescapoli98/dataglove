@@ -8,7 +8,7 @@ import time
 import csv
 from dataglove.msg import DataPrint
 from rospkg import RosPack
-from dataglove.vmg30 import *
+from vmg30 import *
 
 
 

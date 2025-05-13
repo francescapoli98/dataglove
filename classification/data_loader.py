@@ -4,7 +4,7 @@ import pandas as pd
 import torch
 import torchvision
 from torch.utils.data import DataLoader
-from dataglove.vmg30 import *
+from vmg30 import *
 
 
 def get_data(

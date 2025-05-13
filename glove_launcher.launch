@@ -7,7 +7,7 @@
     <node name="data_printer" pkg="dataglove" type="data_printer.py" output="screen"  args="record"/> 
     <!-- subscriber: takes the data stream from the glove and sends it to the classifier -->
     
-    <node pkg="rosbag" type="record" name="rosbag_record" respawn="true" output="screen" args="-O $(find dataglove)/bags/data_$(env ROS_TIME) /tf /odom /cmd_vel" />
+    <node pkg="rosbag" type="record" name="rosbag_record" respawn="true" output="screen" args="-o $(find dataglove)/bags/data /tf /odom /cmd_vel" />
     <!-- recording the data automatically in a .bag file -->
     
     <!-- <node name="sub_glove" pkg="dataglove" type="event_classifier" output="screen"/>  -->
