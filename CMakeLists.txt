@@ -51,6 +51,7 @@ find_package(catkin REQUIRED COMPONENTS
 add_message_files(
   FILES
   DataPrint.msg ##custom
+  NewDataPrint.msg ##custom
 )
 
 ## Generate services in the 'srv' folder

@@ -8,15 +8,15 @@
     <arg name="obj" default="data" />
     <!-- argument to be passed to the glove data getter. It will be used to name the bag file. -->
 
-    <node name="data_getter" pkg="dataglove" type="data_getter.py" output="screen" args="record"/>
+    <node name="data_getter" pkg="dataglove" type="node_getter.py" output="screen" args="record"/>
     <!-- publisher: takes the data stream from the glove and publishes it as a ROS topic. -->
 
     <!-- INSERT HERE: subscribers that get the data stream and pass it to the models for testing 
     TO AVOID PALLEL TASKS: use an external parameter to be put in the YAML to call them in succession even though they're all loaded here-->
 
-    <node name="data_printer" pkg="dataglove" type="data_printer.py" output="screen"  args="record"/> 
+    <node name="data_printer" pkg="dataglove" type="node_printer.py" output="screen"  args="record"/> 
     <!-- subscriber: takes the data stream from the glove and sends it to the classifier -->
-    <node pkg="rosbag" type="record" name="rosbag_record" respawn="true" output="screen" args="-o $(find dataglove)/bags/$(arg obj) /tf /odom /cmd_vel" />
+    <node pkg="rosbag" type="record" name="rosbag_record" respawn="true" output="screen" args="-o $(find dataglove)/bags/$(arg obj) /glove_data" />
     <!-- recording the data automatically in a .bag file -->
     
 </launch>

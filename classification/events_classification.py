@@ -18,92 +18,14 @@ from classification.mixed_ron import MixedRON
 from classification.utils import *
 from classification.data_loader import *
 
+import yaml
 
+# Load YAML config
+with open("/home/frankie/catkin_ws/src/dataglove/config/params.yaml", "r") as f:
+    config = yaml.safe_load(f)
 
-parser = argparse.ArgumentParser(description="training parameters")
-parser.add_argument("--dataroot", type=str)
-parser.add_argument("--resultroot", type=str)
-parser.add_argument("--resultsuffix", type=str, default="", help="suffix to append to the result file name")
-parser.add_argument(
-    "--n_hid", type=int, default=256, help="hidden size of recurrent net"
-)
-parser.add_argument("--batch", type=int, default=16, help="batch size")
-parser.add_argument(
-    "--dt", type=float, default=0.042, help="step size <dt>"
-)
-parser.add_argument(
-    "--gamma", type=float, default=2.7, help="y controle parameter <gamma>"
-)
-parser.add_argument(
-    "--epsilon",
-    type=float,
-    default=4.7,
-    help="z controle parameter <epsilon>",
-)
-parser.add_argument(
-    "--gamma_range",
-    type=float,
-    default=2.7,
-    help="y controle parameter <gamma>",
-)
-parser.add_argument(
-    "--epsilon_range",
-    type=float,
-    default=4.7,
-    help="z controle parameter <epsilon>",
-)
-
-
-parser.add_argument("--sron", action="store_true")
-parser.add_argument("--mixron", action="store_true")
-parser.add_argument("--liquidron", action="store_true")
-
-parser.add_argument("--inp_scaling", type=float, default=1.0, help="ESN input scaling")
-parser.add_argument("--rho", type=float, default=0.99, help="ESN spectral radius")
-parser.add_argument("--leaky", type=float, default=1.0, help="ESN spectral radius")
-parser.add_argument("--use_test", action="store_true")
-parser.add_argument(
-    "--trials", type=int, default=1, help="How many times to run the experiment"
-)
-parser.add_argument(
-    "--topology",
-    type=str,
-    default="full",
-    choices=["full", "ring", "band", "lower", "toeplitz", "orthogonal"],
-    help="Topology of the reservoir",
-)
-parser.add_argument(
-    "--sparsity", type=float, default=0.0, help="Sparsity of the reservoir"
-)
-parser.add_argument(
-    "--reservoir_scaler",
-    type=float,
-    default=1.0,
-    help="Scaler in case of ring/band/toeplitz reservoir",
-)
-
-parser.add_argument("--threshold", type=float, default=1, help="threshold")
-parser.add_argument("--rc", type=float, default=5.0, help="tau")
-parser.add_argument("--reset", type=float, default=0.01, help="reset")
-parser.add_argument("--bias", type=float, default=0.0, help="bias")
-parser.add_argument("--perc", type=float, default=0.5, help="percentage of neurons")
-
-# parser.add_argument("--use_dvs", action="store_true")
-# parser.add_argument("--use_nmnist", action="store_true")
-
-args = parser.parse_args()
-
-if args.dataroot is None:
-    warnings.warn("No dataroot provided. Using current location as default.")
-    args.dataroot = os.getcwd()
-if args.resultroot is None:
-    warnings.warn("No resultroot provided. Using current location as default.")
-    args.resultroot = os.getcwd()
-assert os.path.exists(args.resultroot), \
-    f"{args.resultroot} folder does not exist, please create it and run the script again."
-
-assert 1.0 > args.sparsity >= 0.0, "Sparsity in [0, 1)"
-
+# Convert to a namespace to mimic argparse
+args = argparse.Namespace(**config)
 
 
 @torch.no_grad()
@@ -204,10 +126,10 @@ for i in range(args.trials):
         raise ValueError("Wrong model choice.")
     
 
-# if args.use_dvs:
     train_loader, valid_loader, test_loader = get_data(
-        args.dataroot, args.batch, args.batch
+        root="/home/frankie/catkin_ws/src/dataglove/bags", bs_train=16, bs_test=16, valid_perc=10.0
     )
+
 
     activations, ys = [], []
     
@@ -222,7 +144,6 @@ for i in range(args.trials):
         if args.liquidron:
             output, spk = model(images)
         else:
-            ## for N-MNIST dataset, make sure images[128, 20, 2, 28, 28] and flatten last 3 dim
             output, velocity, u, spk = model(images) 
         activations.append(output[-1].cpu())
         
