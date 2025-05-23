@@ -31,37 +31,13 @@ class GloveNode:
         # Sensor data
         self.print_data = NewDataPrint()
         
-        # self.print_data.name = [
-        #     'thumb_2', 'thumb_1', 'index_2', 'index_1',
-        #     'middle_2', 'middle_1', 'ring_2', 'ring_1',
-        #     'little_2', 'little_1', 'palm_arch',
-        #     'nop', 'thumb_crossover','nop', #nop to be deleted
-        #     'press_thumb', 'press_index', 'press_middle',
-        #     'press_ring', 'press_little',
-        #     'abd_thumb', 'abd_index', 'abd_ring', 'abd_little'    
-        # ]
-        # self.print_data.value = [0.0] * len(self.print_data.name)
-
-        # self.print_data = [0.0] * (len(self.print_data)-1) 
-    
-    # def read_data(self):
-    #     try:
-    #         self.vmg30.read_stream() #data
-    #         # rospy.loginfo(self.vmg30.is_new_packet_available())
-    #         if self.vmg30.is_new_packet_available():
-    #             self.print_data.value = self.vmg30.sensors
-    #             self.vmg30.reset_new_packet()
-    #         self.print_data.header.stamp = rospy.Time.now()
-    #         # rospy.loginfo(self.print_data)
-    #         self.pub.publish(self.print_data)
-    #     except serial.SerialException as e:
-    #         rospy.logerr(f"Serial error: {e}")
+       
     
     def read_data(self):
         try:
             self.vmg30.read_stream()
             if self.vmg30.is_new_packet_available():
-                sensors = self.vmg30.sensors  # a 23-element array
+                sensors = self.vmg30.sensors  # 23-element array
                 
                 self.print_data.header.stamp = rospy.Time.now()
                 self.print_data.thumb_2 = int(sensors[0])
@@ -110,3 +86,38 @@ if __name__ == '__main__':
         node.run()
     except rospy.ROSInterruptException:
         pass
+
+
+
+############################################################################### 
+############################################################################### 
+##  old code:
+# 
+# 
+# 
+ # self.print_data.name = [
+        #     'thumb_2', 'thumb_1', 'index_2', 'index_1',
+        #     'middle_2', 'middle_1', 'ring_2', 'ring_1',
+        #     'little_2', 'little_1', 'palm_arch',
+        #     'nop', 'thumb_crossover','nop', #nop to be deleted
+        #     'press_thumb', 'press_index', 'press_middle',
+        #     'press_ring', 'press_little',
+        #     'abd_thumb', 'abd_index', 'abd_ring', 'abd_little'    
+        # ]
+        # self.print_data.value = [0.0] * len(self.print_data.name)
+
+        # self.print_data = [0.0] * (len(self.print_data)-1) 
+    
+    # def read_data(self):
+    #     try:
+    #         self.vmg30.read_stream() #data
+    #         # rospy.loginfo(self.vmg30.is_new_packet_available())
+    #         if self.vmg30.is_new_packet_available():
+    #             self.print_data.value = self.vmg30.sensors
+    #             self.vmg30.reset_new_packet()
+    #         self.print_data.header.stamp = rospy.Time.now()
+    #         # rospy.loginfo(self.print_data)
+    #         self.pub.publish(self.print_data)
+    #     except serial.SerialException as e:
+    #         rospy.logerr(f"Serial error: {e}")
+############################################################################### 

@@ -37,7 +37,7 @@ class PrintNode:
         rospy.spin()
 
 if __name__ == '__main__':
-    record = "record" in sys.argv  # Check if 'record' is passed as an argument
+    record = "record" in sys.argv  
     try:
         node = PrintNode(record=record)
         node.run()

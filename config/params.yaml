@@ -4,7 +4,7 @@ baudrate: 230400
 rate: 100
 
 # Classification params
-dataroot: "/home/frankie/catkin_ws/src/dataglove/bags"
+dataroot: "/home/frankie/catkin_ws/src/dataglove/models/dataset"
 resultroot: "/home/frankie/catkin_ws/src/dataglove/classification/results"
 n_hid: 256
 batch: 16

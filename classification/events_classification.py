@@ -127,7 +127,7 @@ for i in range(args.trials):
     
 
     train_loader, valid_loader, test_loader = get_data(
-        root="/home/frankie/catkin_ws/src/dataglove/bags", bs_train=16, bs_test=16, valid_perc=10.0
+        root="/home/frankie/catkin_ws/src/dataglove/models/dataset", bs_train=16, bs_test=16, valid_perc=10.0
     )
 
 
