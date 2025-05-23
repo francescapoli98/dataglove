@@ -15,7 +15,7 @@ from vmg30 import *
 class GloveNode:
     
     def __init__(self):
-        rospy.init_node('data_getter', anonymous=True)
+        rospy.init_node('node_getter', anonymous=True)
         # Read parameters
         self.port = rospy.get_param('/my_prefix/port')
         self.baudrate = rospy.get_param('/my_prefix/baudrate')

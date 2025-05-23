@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 import rospy
 import sys
-from dataglove.msg import DataPrint
+from dataglove.msg import NewDataPrint
 
 class PrintNode:
     def __init__(self, record=False):
-        rospy.init_node('data_printer', anonymous=True)
+        rospy.init_node('node_printer', anonymous=True)
         self.record = record
         self.sub = rospy.Subscriber('glove_data', NewDataPrint, self.callback)
 

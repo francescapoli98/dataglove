@@ -1,7 +1,5 @@
 Header header
 
-# string[] name
-# int16[] value
 int16 thumb_2
 int16 thumb_1
 int16 index_2
@@ -26,4 +24,3 @@ int16 abd_index
 int16 abd_ring
 int16 abd_little 
 
-# int16 value
