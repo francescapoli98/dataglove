@@ -3,51 +3,59 @@ import csv
 import pandas as pd
 import torch
 from torch.utils.data import DataLoader, Dataset
-import rospy
-import rosbag
-import traceback 
+from sklearn.model_selection import train_test_split
+import traceback
+import argparse
+
 import yaml
-from classification.utils import *
+# Load YAML config
+with open("/home/frankie/catkin_ws/src/dataglove/config/params.yaml", "r") as f:
+    config = yaml.safe_load(f)
+# Convert to a namespace to mimic argparse
+args = argparse.Namespace(**config)
+
+
 
 class GloveDataset(Dataset):
     def __init__(self, dataframe):
-        self.data = dataframe
+        self.features = dataframe.drop(columns=["rigidity", "object"])
+        self.labels = dataframe.apply(lambda row: (row["rigidity"]*2) + row["object"], axis=1)
 
     def __len__(self):
-        return len(self.data)
+        return len(self.features)
 
     def __getitem__(self, idx):
-        row = self.data.iloc[idx]
-        values = torch.tensor(row[1:].values, dtype=torch.float32)  # joint values
-        label = torch.tensor(0)  # Replace with actual label if available
-        return values, label
+        x = torch.tensor(self.features.iloc[idx].values, dtype=torch.float32)
+        y = torch.tensor(self.labels.iloc[idx], dtype=torch.long)
+        return x, y
 
+def add_cols(folder_path, filename, column_name, keyword_mapping):
+    file_path = os.path.join(folder_path, filename)
+    for keyword, value in keyword_mapping.items():
+        if keyword in filename:
+            df = pd.read_csv(file_path)
+            df[column_name] = value
+            df.to_csv(file_path, index=False)
+            print(f"Updated {filename} with {column_name} = {value}")
+            break  # Only one match expected
 
+def get_data(folder_path, bs_train=32, bs_test=32, valid_perc=10.0):
+    csv_files = []
+    for f in os.listdir(folder_path):
+        if f.endswith('.csv'):
+            add_cols(folder_path, f, 'rigidity', args.rigidity)
+            add_cols(folder_path, f, 'object', args.obj)
+            csv_files.append(f)
 
+    print(f"Found {len(csv_files)} CSV files")
+    df_list = [pd.read_csv(os.path.join(folder_path, file)) for file in csv_files]
+    combined_df = pd.concat(df_list, ignore_index=True).dropna()
 
-def get_data(root: os.PathLike, bs_train: int, bs_test: int, valid_perc: float = 10.0):
-    # IF YOU WANT TO CONVERT .bag FILES TO .csv FILES, UNCOMMENT THE FOLLOWING LINES
-    # Convert all .bag files to .csv if not already done
-    # for file in os.listdir(root):
-    #     if file.endswith(".bag"):
-    #         bag_path = os.path.join(root, file)
-    #         bag_to_csv(bag_path, root)
+    print(combined_df.head())
+    print(combined_df.info())
 
-    # 2. Load all .csv files into pandas DataFrames
-    dataframes = []
-    for file in os.listdir(root):
-        if file.endswith(".csv"):
-            file_path = os.path.join(root, file)
-            df = pd.read_csv(file_path, header=None)
-            dataframes.append(df)
+    dataset = GloveDataset(combined_df)
 
-    # 3. Combine into one dataset
-    dataset_df = pd.concat(dataframes, ignore_index=True)
-
-    # 4. Create custom PyTorch dataset
-    dataset = GloveDataset(dataset_df)
-
-    # 5. Split into train/val/test
     valid_size = int(len(dataset) * (valid_perc / 100.0))
     test_size = int(len(dataset) * 0.2)
     train_size = len(dataset) - valid_size - test_size
@@ -62,53 +70,10 @@ def get_data(root: os.PathLike, bs_train: int, bs_test: int, valid_perc: float =
 
     return train_loader, valid_loader, test_loader
 
+# Optional: uncomment if you need bag file conversion
+# def bag_to_csv(...):
+#     ...
 
-
-
-
-###############################################################################################
-###############################################################################################
-# def bag_to_csv(bag_path, output_dir):
-#     """
-#     Converts a .bag file with messages containing:
-#     - Header header
-#     - string[] name
-#     - int16[] value
-
-#     into a CSV file with:
-#     - Timestamps as row headers
-#     - Joint names as columns (dynamically updated)
-#     """
-#     output_filename = os.path.splitext(os.path.basename(bag_path))[0] + ".csv"
-#     csv_file = os.path.join(output_dir+'/dataset/', output_filename)
-
-#     try:
-#         with rosbag.Bag(bag_path, 'r') as bag:
-#             data_rows = []
-#             joint_names_set = set()
-
-#             for _, msg, t in bag.read_messages():
-#                 timestamp = t.to_sec()
-#                 name_value_dict = dict(zip(msg.name, msg.value))
-#                 joint_names_set.update(name_value_dict.keys())
-#                 data_rows.append((timestamp, name_value_dict))
-#                 print(f"Timestamp: {timestamp}, Names: {name_value_dict.keys()}")
-
-#             joint_names = sorted(joint_names_set)
-
-#             with open(csv_file, 'w', newline='') as f:
-#                 writer = csv.writer(f)
-#                 writer.writerow(['timestamp'] + joint_names)
-
-#                 for timestamp, name_value_dict in data_rows:
-#                     row = [timestamp]
-#                     for joint in joint_names:
-#                         row.append(name_value_dict.get(joint, ''))  # Fill missing with ''
-#                     writer.writerow(row)
-
-#         # print(f"[INFO] Wrote CSV: {csv_file}")
-
-#     except Exception as e:
-#         print(f"[ERROR] Failed to process bag file: {e}")
-#         traceback.print_exc()
-###############################################################################################
+# Usage example:
+# folder = "/your/path/to/dataset"
+# train_loader, valid_loader, test_loader = create_dataset(folder)

@@ -127,39 +127,40 @@ for i in range(args.trials):
     
 
     train_loader, valid_loader, test_loader = get_data(
-        root="/home/frankie/catkin_ws/src/dataglove/models/dataset", bs_train=16, bs_test=16, valid_perc=10.0
+        args.dataroot, bs_train=16, bs_test=16, valid_perc=10.0
     )
 
 
     activations, ys = [], []
     
+    print(train_loader.size)
     # for batch in next(iter(train_loader)):
     #     images, labels = batch[0].float(), batch[1].float() # Access only the first two items
-    for images, labels in train_loader:
-        images = images.float().to(device)
-        images = torch.flatten(images, start_dim=2)
+    # for images, labels in train_loader:
+    #     images = images.float().to(device)
+    #     images = torch.flatten(images, start_dim=2)
         
-        ys.append(labels.cpu()) 
+    #     ys.append(labels.cpu()) 
         
-        if args.liquidron:
-            output, spk = model(images)
-        else:
-            output, velocity, u, spk = model(images) 
-        activations.append(output[-1].cpu())
+    #     if args.liquidron:
+    #         output, spk = model(images)
+    #     else:
+    #         output, velocity, u, spk = model(images) 
+    #     activations.append(output[-1].cpu())
         
 
     
-    if args.liquidron:
-        u= torch.stack(output)
-        spk = torch.stack(spk)    
-        plot_dynamics(u, spk, images, args.resultroot)
-    else:
-        output = torch.stack(output)    
-        spk = torch.stack(spk)    
-        u = torch.stack(u)
-        velocity = torch.stack(velocity)
-        # print('shapes of tensors: \noutput: ', output.shape, '\nspikes: ', spk.shape, '\nmembrane potential: ', u.shape, '\nvelocity: ', velocity.shape, '\nx: ', images.shape)
-        plot_dynamics(u, spk, images, args.resultroot, output=output, velocity=velocity)
+    # if args.liquidron:
+    #     u= torch.stack(output)
+    #     spk = torch.stack(spk)    
+    #     plot_dynamics(u, spk, images, args.resultroot)
+    # else:
+    #     output = torch.stack(output)    
+    #     spk = torch.stack(spk)    
+    #     u = torch.stack(u)
+    #     velocity = torch.stack(velocity)
+    #     # print('shapes of tensors: \noutput: ', output.shape, '\nspikes: ', spk.shape, '\nmembrane potential: ', u.shape, '\nvelocity: ', velocity.shape, '\nx: ', images.shape)
+    #     plot_dynamics(u, spk, images, args.resultroot, output=output, velocity=velocity)
     
     activations = torch.cat(activations, dim=0).detach().numpy() # activations = torch.cat(activations, dim=0).numpy()  
     ys = torch.cat(ys, dim=0).squeeze().numpy()

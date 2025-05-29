@@ -4,7 +4,7 @@ baudrate: 230400
 rate: 100
 
 # Classification params
-dataroot: "/home/frankie/catkin_ws/src/dataglove/models/dataset"
+dataroot: "/home/frankie/catkin_ws/src/dataglove/classification/dataset"
 resultroot: "/home/frankie/catkin_ws/src/dataglove/classification/results"
 n_hid: 256
 batch: 16
@@ -31,3 +31,6 @@ bias: 0.0
 perc: 0.5
 use_dvs: true
 use_nmnist: true
+
+rigidity: {'hard': 1, 'soft': 0}
+obj: {'ball': 1, 'bottle': 0}

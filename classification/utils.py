@@ -12,6 +12,66 @@ import csv
 from torch.utils.data import DataLoader, Dataset
 import rosbag
 
+#######################################################################################################
+############## DATA PREPARATION (.bag to .csv)
+#######################################################################################################
+
+# Define keyword-to-value mapping
+# rigidity = {
+#         'hard': 1,
+#         'soft': 0
+#     }
+# obj = {
+#         'ball': 1,
+#         'bottle': 0
+#     }
+
+# def add_cols(filename,  column_name, keyword_mapping):
+#     # Loop through files in the folder
+#     # for filename in os.listdir(folder_path):
+#     #     if filename.endswith('.csv'):
+#     file_path = os.path.join(folder_path, filename)
+#     for keyword, value in keyword_mapping.items():
+#         if keyword in filename:
+#             df = pd.read_csv(filename)
+#             df[column_name] = value
+#             df.to_csv(file_path, index=False)
+#             print(f"Updated {filename} with {column_name} = {value}")
+#             # break  # Stop after first match to avoid multiple assignments
+
+# def create_dataset(folder_path, bs_train=32, bs_test=32, valid_perc=10.0):
+#     # folder_path = "path/to/your/csv/files"
+#     csv_files = []
+#     for f in os.listdir(folder_path):
+#         if f.endswith('.csv'):
+#             add_cols(f, 'rigidity', rigidity)
+#             add_cols(f, 'object', obj)
+#             csv_files.append(f)
+#             ########## FINISH THIS
+#     # csv_files = [f for f in os.listdir(folder_path) if f.endswith('.csv')]
+#     print(csv_files.shape)
+#     df_list = [pd.read_csv(os.path.join(folder_path, file)) for file in csv_files]
+#     combined_df = pd.concat(df_list, ignore_index=True)
+
+#     print(combined_df.head())
+#     print(combined_df.info())
+#     print(combined_df.isnull().sum())
+
+#     # Replace 'label_column' with your actual label column name
+#     # X = combined_df.drop(columns=['label_column'])
+#     y = combined_df.apply(lambda row: row.rigidity + row.object, axis=1)
+
+
+#     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+#     X_train.to_csv("X_train.csv", index=False)
+#     y_train.to_csv("y_train.csv", index=False)
+#     X_test.to_csv("X_test.csv", index=False)
+#     y_test.to_csv("y_test.csv", index=False)
+
+#######################################################################################################
+############## PLOT FUNCTIONS
+#######################################################################################################
 
 def simple_plot(train_accs: np.ndarray, valid_accs: np.ndarray, test_accs: np.ndarray, resultroot: str):
     print('this is the simple plot')
@@ -142,87 +202,6 @@ def plot_dynamics(
     plt.show()
 
 
-
-def plot_dynam_mg(
-    activations: torch.Tensor = None,
-    # velocity: torch.Tensor = None,
-    # times: int,
-    membrane_potential: torch.Tensor = None,
-    spikes: torch.Tensor = None,
-    # x: torch.Tensor = None,
-    resultroot: str = None,
-):
-    print('Plotting dynamic.')
-
-    # Ensure the input tensors are in numpy format
-    activations = activations.detach().cpu().numpy() if isinstance(activations, torch.Tensor) else activations
-    # velocity = velocity.detach().cpu().numpy() if isinstance(velocity, torch.Tensor) else velocity
-    membrane_potential = membrane_potential.detach().cpu().numpy() if isinstance(membrane_potential, torch.Tensor) else membrane_potential
-    spikes = spikes.detach().cpu().numpy() if isinstance(spikes, torch.Tensor) else spikes
-    # print('activations: ', activations.size(), ' velocity: ', velocity.size(), ' u: ', membrane_potential.size(), ' spikes: ', spikes.size())
-    # Get the time steps (assuming they are aligned with the tensor shapes)
-    time_steps = np.arange(len(activations))#.shape[1])  # Number of time steps (length of time axis)
-    print('Time steps shape: ', time_steps.shape)
-
-    # Create a plot
-    plt.figure(figsize=(8, 10))
-    
-    # Plot the images (x) 
-    plt.subplot(2, 1, 1)
-   
-    plt.title('Membrane Potential (u)')
-    # Plot the first hidden unit of the first channel
-    plt.plot(time_steps, membrane_potential[:, 0, 0], label="Membrane Potential (u)", color="green", linestyle='-', linewidth=1)
-    plt.xlabel('Time Step')
-    plt.ylabel('Value')
-
-    # Plot the spikes (as vertical lines at spike times) - Selecting the first channel (layer) and first unit
-    plt.subplot(2, 1, 2)
-    plt.title('Spiking times')
-    # Filter time steps where spikes == 1
-    spike_times = time_steps[spikes[:, 0, 0] == 1]  # Time steps where spikes occur
-    spike_values = spikes[spikes[:, 0, 0] == 1, 0, 0]  # Spike values (should be all 1s)
-
-    # Scatter plot only the spikes == 1
-    plt.scatter(spike_times,spike_values, color="red", label="Spikes", zorder=5, s=30)
-    plt.xlim(0, len(time_steps))    
-    plt.ylabel('Spike')
-    plt.legend()
-
-
-    # Finalize the plot
-    plt.tight_layout()
-    plt.savefig(f"{resultroot}/dynamics_plot.png")
-    plt.close()
-    plt.show()
-
-
-
-def mg_results(target, predictions, std, resultroot, filename):    
-    """
-    Plots the target data vs. the predicted data.
-    
-    :param target: The ground truth target values (numpy array).
-    :param predictions: The predicted values (numpy array).
-    :param resultroot: Path to save the plot.
-    :param filename: Name of the output file.
-    """
-    plt.figure(figsize=(10, 5))
-    plt.plot(target, label="Target Data", color='blue', linewidth=0.7)
-    plt.plot(predictions, label="Predicted Data", color='red', linewidth=0.7)
-    plt.xlabel("Time Steps")
-    plt.ylabel("Value")
-    plt.title("Target vs Predicted Data")
-    text = f"Mean Squared Error: {'%.3f'%std}"
-    plt.text(0.05, 0.95, text, transform=plt.gca().transAxes, fontsize=10, verticalalignment='top', bbox=dict(boxstyle="round,pad=0.3", edgecolor='black', facecolor='white'))
-    plt.legend()
-    plt.grid(True)
-    plt.savefig(os.path.join(resultroot, filename))
-    plt.show()
-
-
-# Example usage:
-# plot_results(train_mse, test_mse, args.resultroot)
 
 
 def acc_table(param_names, param_combinations, accuracies, resultroot, dataset):
