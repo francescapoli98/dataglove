@@ -14,6 +14,25 @@
     <!-- INSERT HERE: subscribers that get the data stream and pass it to the models for testing 
     TO AVOID PALLEL TASKS: use an external parameter to be put in the YAML to call them in succession even though they're all loaded here-->
 
+    <!-- Subscriber model 1 -->
+    <node name="node_sron" pkg="dataglove" type="classification/s_ron.py" output="screen">
+        <param name="start_param" value="/start_sron"/>
+    </node>
+
+    <!-- Subscriber model 2 -->
+    <node name="node_mixron" pkg="dataglove" type="classification/mixed_ron.py" output="screen">
+        <param name="start_param" value="/start_mixron"/>
+    </node>
+
+     <!-- Subscriber model 3 ?-->
+    <!-- <node name="node_lsm" pkg="dataglove" type="classification/lsm.py" output="screen">
+        <param name="start_param" value="/start_lsm"/>
+    </node> -->
+
+    <!-- Controller centrale -->
+    <node name="node_controller" pkg="dataglove" type="node_controller.py" output="screen" />
+
+
     <node name="node_printer" pkg="dataglove" type="node_printer.py" output="screen"  args="record"/> 
     <!-- subscriber: takes the data stream from the glove and sends it to the classifier -->
     <node pkg="rosbag" type="record" name="rosbag_record" respawn="true" output="screen" args="-o $(find dataglove)/bags/$(arg obj) /glove_data" />

@@ -34,3 +34,6 @@ use_nmnist: true
 
 rigidity: {'hard': 1, 'soft': 0}
 obj: {'ball': 1, 'bottle': 0}
+
+start_sron: false
+start_mixron: false

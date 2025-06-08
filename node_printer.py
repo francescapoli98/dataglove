@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 import rospy
 import sys
+import rosbag_pandas
+
 from dataglove.msg import NewDataPrint
 
 class PrintNode:
@@ -10,6 +12,7 @@ class PrintNode:
         self.sub = rospy.Subscriber('glove_data', NewDataPrint, self.callback)
 
     def callback(self, msg):
+        ## PRINTS just to check the situation
         rospy.loginfo("\nReceived state:")
         rospy.loginfo(f"thumb_2: {msg.thumb_2}")
         rospy.loginfo(f"thumb_1: {msg.thumb_1}")
@@ -32,6 +35,16 @@ class PrintNode:
         rospy.loginfo(f"abd_index: {msg.abd_index}")
         rospy.loginfo(f"abd_ring: {msg.abd_ring}")
         rospy.loginfo(f"abd_little: {msg.abd_little}")
+        ## actual callback: converting .bag files to .csv files
+        if self.record:
+            try:
+                rosbag_pandas.bag_to_csv(msg, 'glove_data.csv')
+                rospy.loginfo("Data recorded to glove_data.csv")
+            except ImportError:
+                rospy.logerr("rosbag_pandas module not found. Install it to record data.")
+            except Exception as e:
+                rospy.logerr(f"Error recording data: {e}")
+
 
     def run(self):
         rospy.spin()

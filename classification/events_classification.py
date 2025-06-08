@@ -133,20 +133,20 @@ for i in range(args.trials):
 
     activations, ys = [], []
     
-    print(train_loader.size)
+    # print(train_loader.size)
     # for batch in next(iter(train_loader)):
     #     images, labels = batch[0].float(), batch[1].float() # Access only the first two items
-    # for images, labels in train_loader:
-    #     images = images.float().to(device)
-    #     images = torch.flatten(images, start_dim=2)
+    for images, labels in train_loader:
+        images = images.float().to(device)
+        images = torch.flatten(images, start_dim=2)
         
-    #     ys.append(labels.cpu()) 
+        ys.append(labels.cpu()) 
         
-    #     if args.liquidron:
-    #         output, spk = model(images)
-    #     else:
-    #         output, velocity, u, spk = model(images) 
-    #     activations.append(output[-1].cpu())
+        if args.liquidron:
+            output, spk = model(images)
+        else:
+            output, velocity, u, spk = model(images) 
+        activations.append(output[-1].cpu())
         
 
     
