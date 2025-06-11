@@ -31,7 +31,7 @@
     </node>
 
     <!-- Controller centrale -->
-    <node name="node_controller" pkg="dataglove" type="node_controller.py" output="screen" />
+    <!-- <node name="node_controller" pkg="dataglove" type="node_controller.py" output="screen" /> -->
 
 
     <node name="node_printer" pkg="dataglove" type="node_printer.py" output="screen"  args="record"/> 

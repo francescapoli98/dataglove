@@ -2,6 +2,7 @@
 port: "/dev/ttyUSB0"
 baudrate: 230400
 rate: 100
+buffer_size: 1000
 
 # Classification params
 dataroot: "/home/frankie/catkin_ws/src/dataglove/classification/dataset"
@@ -38,3 +39,5 @@ obj: {'ball': 1, 'bottle': 0}
 
 start_sron: false
 start_mixron: false
+start_lsm: false
+

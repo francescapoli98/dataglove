@@ -1,5 +1,6 @@
 import torch
-from classification.lsm import LiquidStateMachine  # Adjust import path
+from classification.lsm import LiquidStateMachine  
+from classification.events_classification import test
 
 checkpoint = torch.load("models/lsm_checkpoint.pt", map_location='cpu')
 
@@ -7,3 +8,7 @@ checkpoint = torch.load("models/lsm_checkpoint.pt", map_location='cpu')
 model = LiquidStateMachine(**checkpoint['config'])
 model.load_state_dict(checkpoint['model_state_dict'])
 model.eval()
+
+scaler = preprocessing.StandardScaler()
+activations = scaler.fit_transform(data) 
+

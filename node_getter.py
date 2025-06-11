@@ -30,6 +30,13 @@ class GloveNode:
         
         # Sensor data
         self.print_data = NewDataPrint()
+
+        # Buffer
+        # self.batch_size = rospy.get_param('buffer_size')
+        # self.input_dim = input_dim
+        # self.buffer = torch.zeros((batch_size, input_dim))
+        # self.index = 0
+        # self.model = self.load_model()
         
        
     
@@ -51,7 +58,6 @@ class GloveNode:
                 self.print_data.little_2 = int(sensors[8])
                 self.print_data.little_1 = int(sensors[9])
                 self.print_data.palm_arch = int(sensors[10])
-                # self.print_data.nop = 0  # or remove from msg
                 self.print_data.thumb_crossover = int(sensors[12])
                 self.print_data.press_thumb = int(sensors[14])
                 self.print_data.press_index = int(sensors[15])
@@ -87,37 +93,3 @@ if __name__ == '__main__':
     except rospy.ROSInterruptException:
         pass
 
-
-
-############################################################################### 
-############################################################################### 
-##  old code:
-# 
-# 
-# 
- # self.print_data.name = [
-        #     'thumb_2', 'thumb_1', 'index_2', 'index_1',
-        #     'middle_2', 'middle_1', 'ring_2', 'ring_1',
-        #     'little_2', 'little_1', 'palm_arch',
-        #     'nop', 'thumb_crossover','nop', #nop to be deleted
-        #     'press_thumb', 'press_index', 'press_middle',
-        #     'press_ring', 'press_little',
-        #     'abd_thumb', 'abd_index', 'abd_ring', 'abd_little'    
-        # ]
-        # self.print_data.value = [0.0] * len(self.print_data.name)
-
-        # self.print_data = [0.0] * (len(self.print_data)-1) 
-    
-    # def read_data(self):
-    #     try:
-    #         self.vmg30.read_stream() #data
-    #         # rospy.loginfo(self.vmg30.is_new_packet_available())
-    #         if self.vmg30.is_new_packet_available():
-    #             self.print_data.value = self.vmg30.sensors
-    #             self.vmg30.reset_new_packet()
-    #         self.print_data.header.stamp = rospy.Time.now()
-    #         # rospy.loginfo(self.print_data)
-    #         self.pub.publish(self.print_data)
-    #     except serial.SerialException as e:
-    #         rospy.logerr(f"Serial error: {e}")
-############################################################################### 
