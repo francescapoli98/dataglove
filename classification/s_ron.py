@@ -169,7 +169,7 @@ class SpikingRON(nn.Module):
         ## for NMNIST dataset, deal with x2h param to deal with a timestep dim of 20!
             ## x: 1 x n   x2h: n x hid
         # print('ACTIVATION\nx size: ', x.size(), '\nx2h size: ', self.x2h.size()) ## make sure x and x2h is the same for RON and baseline
-        u_dot = - u + (torch.matmul(hy, self.h2h) + torch.matmul(x, self.x2h) + self.bias) # u dot (update) 
+        u_dot = - u + (torch.matmul(hy, self.h2h)+ torch.matmul(x, self.x2h) + self.bias) # u dot (update) 
         u = u + (u_dot * self.rc # tau = self.rc = (self.R*self.C)
                  )*self.dt # multiply to tau and dt
         
@@ -187,6 +187,7 @@ class SpikingRON(nn.Module):
             torch.Tensor: Hidden states of the network shaped as (batch, time, n_hid).
             list: List containing the last hidden state of the network.
         """
+        x = x.unsqueeze(1)  # shape: (batch, 1, input_dim)
         hy_list, hz_list, u_list, spike_list = [], [], [], []
         hy = torch.zeros(x.size(0), self.n_hid).to(self.device) #x.size(0)
         hz = torch.zeros(x.size(0), self.n_hid).to(self.device)

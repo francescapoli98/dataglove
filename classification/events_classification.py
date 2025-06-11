@@ -33,7 +33,7 @@ def test(data_loader, classifier, scaler):
     activations, ys = [], []
     for images, labels in data_loader:
         images = images.float().to(device)
-        images = torch.flatten(images, start_dim=2)
+        # images = torch.flatten(images, start_dim=2)
         ys.append(labels.cpu()) 
         output = model(images)[0]
         activations.append(output[-1].cpu())
@@ -50,8 +50,6 @@ device = (
     else torch.device("cpu")
 )
 
-n_inp = 1568
-
 gamma = (args.gamma - args.gamma_range / 2.0, args.gamma + args.gamma_range / 2.0)
 epsilon = (
     args.epsilon - args.epsilon_range / 2.0,
@@ -60,6 +58,13 @@ epsilon = (
 
 train_accs, valid_accs, test_accs = [], [], []
 for i in range(args.trials):
+
+    train_loader, valid_loader, test_loader = get_data(
+        args.dataroot, bs_train=16, bs_test=16, valid_perc=10.0
+    )
+
+    n_inp = train_loader.dataset[0][0].shape[0]  # Assuming the first dimension is the input size
+
     if args.sron:
         model = SpikingRON(
             n_inp,
@@ -78,9 +83,14 @@ for i in range(args.trials):
             reservoir_scaler=args.reservoir_scaler,
             device=device,
         ).to(device)
+        torch.save({
+            'model_state_dict': model.state_dict(),
+            'config': args.__dict__,  # Converts Namespace to dict
+            }, "models/sron_checkpoint.pt")
+
     
     elif args.liquidron:
-        model = LiquidRON(
+        model = LiquidStateMachine(
             n_inp,
             args.n_hid,
             args.dt,
@@ -103,6 +113,11 @@ for i in range(args.trials):
             reservoir_scaler=args.reservoir_scaler,
             device=device
         ).to(device)
+        torch.save({
+            'model_state_dict': model.state_dict(),
+            'config': args.__dict__,  # Converts Namespace to dict
+            }, "models/lsm_checkpoint.pt")
+
     elif args.mixron:
         model = MixedRON(
             n_inp,
@@ -122,30 +137,29 @@ for i in range(args.trials):
             reservoir_scaler=args.reservoir_scaler,
             device=device,
         ).to(device) 
+        torch.save({
+            'model_state_dict': model.state_dict(),
+            'config': args.__dict__,  # Converts Namespace to dict
+            }, "models/mixedron_checkpoint.pt")
     else:
         raise ValueError("Wrong model choice.")
     
 
-    train_loader, valid_loader, test_loader = get_data(
-        args.dataroot, bs_train=16, bs_test=16, valid_perc=10.0
-    )
-
 
     activations, ys = [], []
     
-    # print(train_loader.size)
-    # for batch in next(iter(train_loader)):
-    #     images, labels = batch[0].float(), batch[1].float() # Access only the first two items
-    for images, labels in train_loader:
-        images = images.float().to(device)
-        images = torch.flatten(images, start_dim=2)
-        
+
+    for values, labels in train_loader:
+        values = values.float().to(device)
+        # images = torch.flatten(images, start_dim=2)
         ys.append(labels.cpu()) 
+        # print(values.size())
+
         
         if args.liquidron:
-            output, spk = model(images)
+            output, spk = model(values)
         else:
-            output, velocity, u, spk = model(images) 
+            output, velocity, u, spk = model(values) 
         activations.append(output[-1].cpu())
         
 
@@ -179,7 +193,7 @@ for i in range(args.trials):
     # valid_accs.append(valid_acc)
     test_accs.append(test_acc)
     print('Train accuracy: ', train_acc, '\nTest accuracy: ', test_acc)
-simple_plot(train_accs, valid_accs, test_accs, args.resultroot)
+# simple_plot(train_accs, valid_accs, test_accs, args.resultroot)
 
 
 if args.sron:
@@ -190,8 +204,6 @@ elif args.mixron:
     f = open(os.path.join(args.resultroot, f"log_MixedRON{args.resultsuffix}.txt"), "a")
 else:
     raise ValueError("Wrong model choice.")
-
-
 
 
 
@@ -208,3 +220,31 @@ ar += (
 )
 f.write(ar + "\n")
 f.close()
+
+
+torch.save({
+    'model_state_dict': model.state_dict(),
+    'config': {
+        'n_inp': ...,
+        'n_hid': 256,
+        'dt': ...,
+        'gamma': ...,
+        'epsilon': ...,
+        'rho': ...,
+        'input_scaling': ...,
+        'threshold': ...,
+        'rc': ...,
+        'reset': ...,
+        'bias': ...,
+        'win_e': ...,
+        'win_i': ...,
+        'w_e': ...,
+        'w_i': ...,
+        'Ne': ...,
+        'Ni': ...,
+        'topology': 'full',
+        'reservoir_scaler': 0.0,
+        'sparsity': 0.0,
+        'device': 'cpu',
+    }
+}, "lsm_checkpoint.pt")

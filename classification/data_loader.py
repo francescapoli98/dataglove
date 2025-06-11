@@ -21,39 +21,18 @@ args = argparse.Namespace(**config)
 
 class GloveDataset(Dataset):
     def __init__(self, dataframe):
-        self.features = dataframe.drop(columns=["rigidity", "object"])
+        self.features = dataframe.drop(columns=["time", "rigidity", "object"])
         self.labels = dataframe.apply(lambda row: ((row["rigidity"]*2) + row["object"]), axis=1)
 
     def __len__(self):
         return len(self.features)
 
     def __getitem__(self, idx):
-        x = torch.tensor(self.features.iloc[idx].values, dtype=torch.int16)
-        y = torch.tensor(self.labels.iloc[idx], dtype=torch.int16)
+        x = torch.tensor(self.features.iloc[idx].values.astype(np.int16))
+        y = torch.tensor(self.labels.iloc[idx].astype(np.int16))
         return x, y
 
-# class GloveDataset(Dataset):
-#     def __init__(self, dataframe):
-#         self.features = dataframe.drop(columns=["rigidity", "object"])
-#         self.features = self.features.apply(pd.to_numeric, errors='coerce')
-        
-#         valid_rows = self.features.notna().all(axis=1)
-#         self.features = self.features[valid_rows].reset_index(drop=True)
-
-#         labels = dataframe.loc[valid_rows].apply(
-#             lambda row: ((row["rigidity"] * 2) + row["object"]), axis=1
-#         )
-#         self.labels = labels.reset_index(drop=True)
-
-#     def __len__(self):
-#         return len(self.features)
-
-#     def __getitem__(self, idx):
-#         x = torch.tensor(self.features.iloc[idx].values.astype(np.int16))
-#         y = torch.tensor(self.labels.iloc[idx], dtype=torch.int16)
-#         return x, y
-
-
+######
 
 def add_cols(folder_path, filename, column_name, keyword_mapping):
     file_path = os.path.join(folder_path, filename)
@@ -102,9 +81,6 @@ def get_data(folder_path, bs_train=32, bs_test=32, valid_perc=10.0):
     # print(combined_df.head())
 
     dataset = GloveDataset(combined_df)
-    # print(dataset.info())
-    print(f"Dataset length: {len(dataset)}")
-
 
     valid_size = int(len(dataset) * (valid_perc / 100.0))
     test_size = int(len(dataset) * 0.2)
@@ -122,11 +98,3 @@ def get_data(folder_path, bs_train=32, bs_test=32, valid_perc=10.0):
     test_loader = DataLoader(test_dataset, batch_size=bs_test, shuffle=False)
     
     return train_loader, valid_loader, test_loader
-
-# Optional: uncomment if you need bag file conversion
-# def bag_to_csv(...):
-#     ...
-
-# Usage example:
-# folder = "/your/path/to/dataset"
-# train_loader, valid_loader, test_loader = create_dataset(folder)

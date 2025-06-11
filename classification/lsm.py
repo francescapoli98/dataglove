@@ -156,35 +156,11 @@ class LiquidStateMachine(nn.Module):
 
         return u, spike
 
-    
-    # def readout_layer(self, states): #target
-    #     # if self.reg is not None:
-    #     #     self.readout = torch.linalg.pinv(states.T @ states + np.eye(states.shape[1]) * self.reg) @ states.T @ target
-    #     # else:
-    #     #     self.readout = torch.linalg.pinv(states) @ target
-    #     #     # self.readout = torch.linalg.pinv(states.T @ states + torch.eye(states.shape[1]) * 1e-5) @ (states.T @ target)
-        
-    #     # return states @ self.readout
-    #     return self.readout(states)
-    
-    ##################### 
-    '''
-    from the snntorch tutorial:
-    
-        # LIF w/Reset mechanism
-        
-        def leaky_integrate_and_fire(mem, cur=0, threshold=1, time_step=1e-3, R=5.1, C=5e-3):
-            tau_mem = R*C
-            spk = (mem > threshold)
-            mem = mem + (time_step/tau_mem)*(-mem + cur*R) - spk*threshold  # every time spk=1, subtract the threhsold
-            return mem, spk
-    '''
-    ##################### 
 
     def forward(self, x: torch.Tensor): 
+        x = x.unsqueeze(1)  # shape: (batch, 1, input_dim)
         
         u_list, spike_list, hy_list = [], [], []
-        # print('LSM PARAMS \nwin_e:', win_e, 'win_i:', win_i, 'w_e:', w_e, 'w_i:', w_i, 'Ne:', Ne, 'Ni:', Ni)
         u = torch.zeros(x.size(0), self.n_hid).to(self.device)
         hy = torch.zeros(x.size(0), self.n_hid).to(self.device) #x.size(0)
         # print('input dim: ', x.size())
@@ -199,4 +175,5 @@ class LiquidStateMachine(nn.Module):
         # u_list, spike_list = torch.stack(u_list, dim=1).to(self.device), torch.stack(spike_list, dim=1).to(self.device)
         # self.readout = nn.Linear(self.n_hid, self.n_hid, bias=False).to(self.device)
         # readout = self.readout(u_list[:, -1])  # Shape: (batch_size, n_hid)
+        
         return u_list, spike_list 

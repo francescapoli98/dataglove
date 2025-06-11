@@ -180,6 +180,8 @@ class MixedRON(nn.Module):
             torch.Tensor: Hidden states of the network shaped as (batch, time, n_hid).
             list: List containing the last hidden state of the network.
         """
+        x = x.unsqueeze(1)  # shape: (batch, 1, input_dim)
+
         hy_list=[]
         hy_m_list = [] # hy from harmonic mechanical oscillators
         hz_list = [] #hz from mechanical oscillators too
@@ -212,29 +214,3 @@ class MixedRON(nn.Module):
         return hy_list, hz_list, hy_u_list, spike_list #hy_m_list
     
     
-    
-    
-#### old version ####
-    
-    # def spiking_osc(self, act, u):
-    #     spike = (u > self.threshold) * 1.0
-    #     # hy was previously weighted with self.w and x was weighted with R --> now I use reservoir weight
-    #     u[spike == 1] = self.reset  # Hard reset only for spikes
-    #     # tau = R * C
-    #     # print('DIMENSIONS: \n u: ', u.size(), '\n act: ', act.size())
-    #     u = u + (self.rc*self.dt)*(-u + act)
-    #     return spike, u
-    #     # u -= spike*self.threshold # soft reset the membrane potential after spike
-    #     ## plot membrane potential with thresholds and positive spikes
-    
-    # def harmonic_osc(self, act, hy, hz):
-    #     #padding act to match hz's size (not = n_hid because of portioning)
-    #     # if act.shape[2] < hz.shape[1]:
-    #     #     pad_size = hz.shape[1] - act.shape[2]
-    #     #     act = torch.cat((act, torch.zeros(act.shape[0], pad_size, act.shape[2], device=act.device)), dim=1)
-    #         # act = torch.cat((act, torch.zeros(act.shape[0], pad_size, device=act.device)), dim=0)
-    #     print('SOME SIZES: \nact: ', act.size(), '\ndt: ', self.dt, '\ngamma: ', self.gamma.size(), '\nepsilon: ', self.epsilon.size(), '\nhy: ', hy.size(), '\nhz: ', hz.size())
-    #     hz = hz + self.dt * act - self.gamma * hy - self.epsilon * hz
-
-    #     hy = hy + self.dt * hz
-    #     return hy, hz

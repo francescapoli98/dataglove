@@ -6,16 +6,17 @@ rate: 100
 # Classification params
 dataroot: "/home/frankie/catkin_ws/src/dataglove/classification/dataset"
 resultroot: "/home/frankie/catkin_ws/src/dataglove/classification/results"
+resultsuffix: ""
 n_hid: 256
-batch: 16
+batch: 128
 dt: 0.042
 gamma: 2.7
 epsilon: 4.7
 gamma_range: 2.7
 epsilon_range: 4.7
 sron: true
-mixron: true
-liquidron: true
+mixron: false
+liquidron: false
 inp_scaling: 1.0
 rho: 0.99
 leaky: 1.0
@@ -25,12 +26,12 @@ topology: "full"  # choices: ["full", "ring", "band", "lower", "toeplitz", "orth
 sparsity: 0.0
 reservoir_scaler: 1.0
 threshold: 1
-rc: 5.0
-reset: 0.01
-bias: 0.0
-perc: 0.5
-use_dvs: true
-use_nmnist: true
+rc: 7.0
+reset: 0.001
+bias: 0.001
+perc: 0.8
+# use_dvs: true
+# use_nmnist: true
 
 rigidity: {'hard': 1, 'soft': 0}
 obj: {'ball': 1, 'bottle': 0}

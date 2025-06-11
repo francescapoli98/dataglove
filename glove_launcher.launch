@@ -7,7 +7,8 @@
     You don’t even need to give an absolute path: by using $(find my_package), ROS will automatically get the path to your package -->
     <arg name="obj" default="data" />
     <!-- argument to be passed to the glove data getter. It will be used to name the bag file. -->
-
+                            <!-- FOR DEBUGGING: -->
+    <!-- <node name="fake_glove_pub" pkg="dataglove" type="fake_glove_pub.py" output="screen"/> -->
     <node name="node_getter" pkg="dataglove" type="node_getter.py" output="screen" args="record"/>
     <!-- publisher: takes the data stream from the glove and publishes it as a ROS topic. -->
 
@@ -25,9 +26,9 @@
     </node>
 
      <!-- Subscriber model 3 ?-->
-    <!-- <node name="node_lsm" pkg="dataglove" type="classification/lsm.py" output="screen">
+    <node name="node_lsm" pkg="dataglove" type="classification/lsm.py" output="screen">
         <param name="start_param" value="/start_lsm"/>
-    </node> -->
+    </node>
 
     <!-- Controller centrale -->
     <node name="node_controller" pkg="dataglove" type="node_controller.py" output="screen" />
