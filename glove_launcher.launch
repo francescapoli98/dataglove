@@ -36,7 +36,7 @@
     <!-- Controller (obsolete) -->
     <!-- <node name="node_controller" pkg="dataglove" type="node_controller.py" output="screen" /> -->
 
-    <node pkg="rosbag" type="record" name="rosbag_record" respawn="true" output="screen" args="-o $(find dataglove)/bags/$(arg obj) /glove_data" />
+    <!-- <node pkg="rosbag" type="record" name="rosbag_record" respawn="true" output="screen" args="-o $(find dataglove)/bags/$(arg obj) /glove_data" /> -->
     <!-- recording the data automatically in a .bag file -->
     
 </launch>

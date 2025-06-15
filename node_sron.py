@@ -22,7 +22,7 @@ class SRONNode:
 
         script_dir = os.path.dirname(os.path.abspath(__file__))  # path di node_sron.py
         ckpt_path = os.path.join(script_dir, "models", "sron_checkpoint.pt")
-        checkpoint = torch.load(ckpt_path, map_location='cpu')
+        checkpoint = torch.load(ckpt_path, map_location='cpu', weights_only=False)
         # checkpoint = torch.load("models/sron_checkpoint.pt", map_location='cpu')
         filtered_config = self.filter_model_args(SpikingRON, checkpoint['config'])
         self.model = SpikingRON(**filtered_config)#**checkpoint['config']

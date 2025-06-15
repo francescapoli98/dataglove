@@ -22,7 +22,7 @@ class MixedNode:
 
         script_dir = os.path.dirname(os.path.abspath(__file__))  # path di node_mixedron.py
         ckpt_path = os.path.join(script_dir, "models", "mixedron_checkpoint.pt")
-        checkpoint = torch.load(ckpt_path, map_location='cpu')
+        checkpoint = torch.load(ckpt_path, map_location='cpu', weights_only=False)
         # checkpoint = torch.load("models/mixedron_checkpoint.pt", map_location='cpu')
         filtered_config = self.filter_model_args(MixedRON, checkpoint['config'])
         self.model = MixedRON(**filtered_config)

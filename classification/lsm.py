@@ -51,7 +51,7 @@ class LiquidStateMachine(nn.Module):
         ] = "full",
         reservoir_scaler=0.0,
         sparsity=0.0,
-        device="cuda"
+        device="cpu"
     ):
         """Initialize the RON model.
 

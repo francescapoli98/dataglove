@@ -34,7 +34,7 @@ args = argparse.Namespace(**model_config)
 def test(data_loader, classifier, scaler):
     activations, ys = [], []
     for images, labels in data_loader:
-        images = images.float().to(device)
+        images = images.float().to(args.device)
         # images = torch.flatten(images, start_dim=2)
         ys.append(labels.cpu()) 
         output = model(images)[0]
@@ -83,7 +83,8 @@ for i in range(args.trials):
             topology=args.topology,
             sparsity=args.sparsity,
             reservoir_scaler=args.reservoir_scaler,
-            device=device,
+            args.device
+            # device=device,
         ).to(device)
         torch.save({
             'model_state_dict': model.state_dict(),
@@ -113,7 +114,8 @@ for i in range(args.trials):
             topology=args.topology,
             sparsity=args.sparsity,
             reservoir_scaler=args.reservoir_scaler,
-            device=device
+            device=args.device
+            # device=device
         ).to(device)
         torch.save({
             'model_state_dict': model.state_dict(),
@@ -137,7 +139,7 @@ for i in range(args.trials):
             topology=args.topology,
             sparsity=args.sparsity,
             reservoir_scaler=args.reservoir_scaler,
-            device=device,
+            device=args.device#device,
         ).to(device) 
         torch.save({
             'model_state_dict': model.state_dict(),
@@ -152,7 +154,7 @@ for i in range(args.trials):
     
 
     for values, labels in train_loader:
-        values = values.float().to(device)
+        values = values.float().to(args.device)
         # images = torch.flatten(images, start_dim=2)
         ys.append(labels.cpu()) 
         # print(values.size())

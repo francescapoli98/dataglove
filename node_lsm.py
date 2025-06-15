@@ -23,7 +23,7 @@ class LSMNode:
 
         script_dir = os.path.dirname(os.path.abspath(__file__))  # path di node_lsm.py
         ckpt_path = os.path.join(script_dir, "models", "lsm_checkpoint.pt")
-        checkpoint = torch.load(ckpt_path, map_location='cpu')
+        checkpoint = torch.load(ckpt_path, map_location='cpu', weights_only=False)
         # checkpoint = torch.load("models/lsm_checkpoint.pt", map_location='cpu')
         # rospy.loginfo(f"[LSM] Loading model from {checkpoint['model_path']}")
         filtered_config = self.filter_model_args(LiquidStateMachine, checkpoint['config'])

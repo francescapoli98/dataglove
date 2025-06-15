@@ -17,6 +17,7 @@ model:
   epsilon: 4.7
   gamma_range: 2.7
   epsilon_range: 4.7
+  device: "cpu"  # choices: ["cpu", "cuda"]
   sron: true
   mixron:  false
   liquidron: false
