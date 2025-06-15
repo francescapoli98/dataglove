@@ -17,9 +17,9 @@ class GloveNode:
     def __init__(self):
         rospy.init_node('node_getter', anonymous=True)
         # Read parameters
-        self.port = rospy.get_param('/my_prefix/port')
-        self.baudrate = rospy.get_param('/my_prefix/baudrate')
-        self.pub_rate = rospy.get_param('/my_prefix/rate')
+        self.port = rospy.get_param('/dataglove_params/serial/port')
+        self.baudrate = rospy.get_param('/dataglove_params/serial/baudrate')
+        self.pub_rate = rospy.get_param('/dataglove_params/serial/rate')
         self.vmg30 = VMG30()
         
         # Serial connection

@@ -1,16 +1,15 @@
+#!/usr/bin/env python3
+
 from typing import (
     List,
     Literal,
     Tuple,
     Union,
 )
-
 import torch
 from torch import nn
-
 import snntorch as snn
 from snntorch import surrogate
-
 import numpy as np
 
 # from acds.archetypes.utils import (
@@ -126,8 +125,7 @@ class LiquidStateMachine(nn.Module):
         self.leaky = snn.Leaky(beta=0.9)
         
         
-        
-        
+
     def LIFcell(
         self, x: torch.Tensor, 
         hy: torch.Tensor, #hz: torch.Tensor, 

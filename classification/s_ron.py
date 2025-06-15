@@ -1,11 +1,5 @@
-'''
-BEST VALUES:
-SMNIST
---threshold: 0.008 --reset: 0.004 --rc: 7.0
+#!/usr/bin/env python3
 
-M-G
---rc 5 --threshold 0.009 --reset 0.004 --bias 0.1
-'''
 from typing import (
     List,
     Literal,

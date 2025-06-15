@@ -6,6 +6,7 @@ import os
 import warnings
 import numpy as np
 import torch
+import rospy
 import torch.nn.utils
 from sklearn import preprocessing
 from sklearn.linear_model import LogisticRegression
@@ -23,9 +24,10 @@ import yaml
 # Load YAML config
 with open("/home/frankie/catkin_ws/src/dataglove/config/params.yaml", "r") as f:
     config = yaml.safe_load(f)
-
 # Convert to a namespace to mimic argparse
-args = argparse.Namespace(**config)
+model_config = config['model']
+rospy.loginfo(model_config)
+args = argparse.Namespace(**model_config)
 
 
 @torch.no_grad()
@@ -73,7 +75,7 @@ for i in range(args.trials):
             gamma,
             epsilon,
             args.rho,
-            args.inp_scaling,
+            args.input_scaling,
             args.threshold,
             args.rc,
             args.reset,
@@ -97,7 +99,7 @@ for i in range(args.trials):
             gamma,
             epsilon,
             args.rho,
-            args.inp_scaling,
+            args.input_scaling,
             args.threshold,
             args.rc,
             args.reset,
@@ -126,7 +128,7 @@ for i in range(args.trials):
             gamma,
             epsilon,
             args.rho,
-            args.inp_scaling,
+            args.input_scaling,
             args.threshold,
             args.rc,
             args.reset,
@@ -221,30 +223,3 @@ ar += (
 f.write(ar + "\n")
 f.close()
 
-
-torch.save({
-    'model_state_dict': model.state_dict(),
-    'config': {
-        'n_inp': ...,
-        'n_hid': 256,
-        'dt': ...,
-        'gamma': ...,
-        'epsilon': ...,
-        'rho': ...,
-        'input_scaling': ...,
-        'threshold': ...,
-        'rc': ...,
-        'reset': ...,
-        'bias': ...,
-        'win_e': ...,
-        'win_i': ...,
-        'w_e': ...,
-        'w_i': ...,
-        'Ne': ...,
-        'Ni': ...,
-        'topology': 'full',
-        'reservoir_scaler': 0.0,
-        'sparsity': 0.0,
-        'device': 'cpu',
-    }
-}, "lsm_checkpoint.pt")
