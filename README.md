@@ -8,6 +8,7 @@ Academic Year 2023/24
 
 Project's specifics:
 
-- ROS interface of a sensorized data glove (VMG30).
-- Machine Learning model for shape estimation. Build a network that starting from sensors data estimates either the grasping strategy or the shape of the grasped object
-- The model will be generated using real data.
+- ROS interface of a sensorized data glove ([VMG30](https://www.vrealities.com/products/data-gloves/vmg30)).
+- Testing original spiking/couples oscillators hybrid archetypes I developed for the [EMERGE](https://eic-emerge.eu/) project for shape estimation and event-based online classification.
+- Starting from sensors data, the networks estimate shape and rigidity of the grasped object. The model is also generated using real data.
+
