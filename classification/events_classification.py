@@ -83,7 +83,7 @@ for i in range(args.trials):
             topology=args.topology,
             sparsity=args.sparsity,
             reservoir_scaler=args.reservoir_scaler,
-            args.device
+            device=args.device
             # device=device,
         ).to(device)
         torch.save({
