@@ -5,7 +5,7 @@ import torch
 import os
 import inspect
 import numpy as np
-from std_msgs.msg import Float32MultiArray
+from std_msgs.msg import Float32MultiArray, Int16MultiArray
 from sklearn.preprocessing import StandardScaler
 from classification.s_ron import SpikingRON
 
@@ -15,9 +15,9 @@ class SRONNode:
 
         self.batch_size = rospy.get_param('/dataglove_params/buffer_size', 50)
         self.input_size = 21
-        self.start_param = rospy.get_param('/dataglove_params/start_sron')
+        # self.start_param = rospy.get_param('/dataglove_params/start_sron')
         self.started = False
-        self.sub = None
+        self.sron_subscriber = None
         # Load model
 
         script_dir = os.path.dirname(os.path.abspath(__file__))  # path di node_sron.py
@@ -31,6 +31,7 @@ class SRONNode:
 
         # Load or mock scaler
         self.scaler = StandardScaler()
+        self.sron_subscriber = rospy.Subscriber("/glove_buffer", Int16MultiArray, self.buffer_callback)
         # if 'scaler_mean' in checkpoint and 'scaler_scale' in checkpoint:
         #     self.scaler.mean_ = checkpoint['scaler_mean']
         #     self.scaler.scale_ = checkpoint['scaler_scale']
@@ -39,16 +40,16 @@ class SRONNode:
         #     self.scaler.scale_ = np.ones(self.input_size)
 
         # Timer to check for start signal
-        rospy.Timer(rospy.Duration(0.5), self.check_start)
+        # rospy.Timer(rospy.Duration(0.5), self.check_start)
 
-    def check_start(self, _):
-        if not self.started and rospy.has_param(self.start_param):
-            start_val = rospy.get_param(self.start_param)
-            if start_val is True:
-                # rospy.loginfo(f"[SRON] Starting node after start_param {self.start_param}")
-                self.started = True
-                self.sub = rospy.Subscriber("/glove_buffer", Float32MultiArray, self.buffer_callback)
-                rospy.delete_param(self.start_param)
+    # def check_start(self, _):
+    #     if not self.started and rospy.has_param(self.start_param):
+    #         start_val = rospy.get_param(self.start_param)
+    #         if start_val is True:
+    #             # rospy.loginfo(f"[SRON] Starting node after start_param {self.start_param}")
+    #             self.started = True
+    #             self.sub = rospy.Subscriber("/glove_buffer", Int16MultiArray, self.buffer_callback)
+    #             rospy.delete_param(self.start_param)
 
     @staticmethod
     def filter_model_args(model_class, config_dict):
@@ -62,6 +63,7 @@ class SRONNode:
 
     def buffer_callback(self, msg):
         try:
+            rospy.loginfo(f"[SRON] Starting node")
             flat_data = np.array(msg.data, dtype=np.float32)
             buffer = flat_data.reshape((self.batch_size, self.input_size))
             norm_data = self.scaler.transform(buffer)

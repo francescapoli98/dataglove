@@ -2,16 +2,16 @@
 import rospy
 import random
 from std_msgs.msg import Header
-from dataglove.msg import NewDataPrint
+from dataglove.msg import DataPrint
 
 def fake_data_stream():
     rospy.init_node('fake_glove_pub', anonymous=True)
-    pub = rospy.Publisher('glove_data', NewDataPrint, queue_size=1)
+    pub = rospy.Publisher('glove_data', DataPrint, queue_size=1)
     rate_hz = rospy.get_param('/dataglove_params/serial/rate', 50)  # fallback to 50Hz
     rate = rospy.Rate(rate_hz)
 
     while not rospy.is_shutdown():
-        msg = NewDataPrint()
+        msg = DataPrint()
         msg.header.stamp = rospy.Time.now()
 
         # Simulated sensor values (replace with patterns if needed)

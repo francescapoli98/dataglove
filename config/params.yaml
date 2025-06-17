@@ -2,7 +2,7 @@
 serial:
   port: "/dev/ttyUSB0"
   baudrate: 230400
-  rate: 100
+  rate: 10
 
 # Classification params
 model: 
@@ -45,8 +45,8 @@ model:
 rigidity: {'hard': 1, 'soft': 0}
 obj: {'ball': 1, 'bottle': 0}
 
-start_sron: false
-start_mixron: false
-start_lsm: false
+# start_sron: false
+# start_mixron: false
+# start_lsm: false
 
-buffer_size: 1000
+buffer_size: 100

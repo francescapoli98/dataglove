@@ -3,8 +3,8 @@ import rospy
 import sys
 import rosbag_pandas
 import torch
-from dataglove.msg import NewDataPrint
-from std_msgs.msg import Float32MultiArray
+from dataglove.msg import DataPrint
+from std_msgs.msg import Float32MultiArray, Int16MultiArray 
 
 
 def set_start_param(param_name, delay_seconds):
@@ -18,13 +18,13 @@ def set_start_param(param_name, delay_seconds):
 
 class PrintNode:
     def __init__(self, record=False):
-        rospy.init_node('node_printer', anonymous=True)
+
         self.record = record
         self.index = 0
         self.batch_size = rospy.get_param('/dataglove_params/buffer_size')
-        self.buffer = torch.zeros((self.batch_size, 21), dtype=torch.float32)  # Assuming 23 features as per NewDataPrint
-        self.sub = rospy.Subscriber('glove_data', NewDataPrint, self.callback)
-        self.buffer_pub = rospy.Publisher('glove_buffer', Float32MultiArray, queue_size=1)
+        self.buffer = torch.zeros((self.batch_size, 21), dtype=torch.int16)  # Assuming 21 features as per DataPrint
+        self.sub = rospy.Subscriber('glove_data', DataPrint, self.callback)
+        self.buffer_pub = rospy.Publisher('glove_buffer', Int16MultiArray, queue_size=1)
 
 
     def callback(self, msg):
@@ -39,14 +39,15 @@ class PrintNode:
             self.index += 1
         else:
             # If buffer is full, shift the data (sliding window)
-            set_start_param("/dataglove_params/start_sron", 2)     # Starts after 2 seconds
-            # set_start_param("/dataglove_params/start_mixron", 4)   # Starts 2 seconds after the previous
-            # set_start_param("/dataglove_params/start_lsm", 6)      # Starts 2 seconds after the previous
+            # set_start_param("/dataglove_params/start_sron", 1)     # Starts after 1 second
+            # set_start_param("/dataglove_params/start_mixron", 2)   # Starts 1 second after the previous
+            # set_start_param("/dataglove_params/start_lsm", 3)      # Starts 1 second after the previous
             # Shift up: drop the oldest (first) row and append the new one
             self.buffer = torch.roll(self.buffer, shifts=-1, dims=0)
             self.buffer[-1] = data
-             # After updating the buffer
-            buffer_msg = Float32MultiArray(data=self.buffer.flatten().tolist())
+            # After updating the buffer
+            buffer_msg = Int16MultiArray(data=self.buffer.flatten().tolist())
+            rospy.loginfo(f"Buffer updated: {self.buffer.tolist()}")
             self.buffer_pub.publish(buffer_msg)
 
      
@@ -55,7 +56,11 @@ class PrintNode:
         rospy.spin()
 
 if __name__ == '__main__':
-    record = "record" in sys.argv  
+
+    record = "record" in sys.argv
+
+    rospy.init_node('node_printer')
+
     try:
         node = PrintNode(record=record)
         node.run()
