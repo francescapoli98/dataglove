@@ -64,15 +64,17 @@ class SRONNode:
     def buffer_callback(self, msg):
         try:
             rospy.loginfo(f"[SRON] Starting node")
+            # flat_data = np.array(msg, dtype=np.int16)
             flat_data = np.array(msg.data, dtype=np.float32)
             buffer = flat_data.reshape((self.batch_size, self.input_size))
-            norm_data = self.scaler.transform(buffer)
+            norm_data = self.scaler.fit_transform(buffer) 
             input_tensor = torch.tensor(norm_data, dtype=torch.float32)
             with torch.no_grad():
-                prediction = self.model(input_tensor)
-            rospy.loginfo(f"[SRON] Prediction: {prediction}")
+                output = self.model(input_tensor)[0][-1]
+                rospy.loginfo(output)
         except Exception as e:
             rospy.logerr(f"[SRON] Error in callback: {e}")
+
 
     def run(self):
         rospy.spin()

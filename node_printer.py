@@ -47,7 +47,7 @@ class PrintNode:
             self.buffer[-1] = data
             # After updating the buffer
             buffer_msg = Int16MultiArray(data=self.buffer.flatten().tolist())
-            rospy.loginfo(f"Buffer updated: {self.buffer.tolist()}")
+            # rospy.loginfo(f"Buffer updated: {self.buffer.tolist()}")
             self.buffer_pub.publish(buffer_msg)
 
      

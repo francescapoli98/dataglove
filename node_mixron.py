@@ -63,13 +63,14 @@ class MixedNode:
     def buffer_callback(self, msg):
         try:
             rospy.loginfo(f"[MRON] Starting node")
-            flat_data = np.array(msg.data, dtype=np.int16)
+            flat_data = np.array(msg.data, dtype=np.float32)
             buffer = flat_data.reshape((self.batch_size, self.input_size))
-            norm_data = self.scaler.fit_transform(buffer)
+            norm_data = self.scaler.fit_transform(buffer) 
             input_tensor = torch.tensor(norm_data, dtype=torch.float32)
             with torch.no_grad():
-                prediction = self.model(input_tensor)
-            rospy.loginfo(f"[MRON] Prediction: {prediction}")
+                hy_list, hz_list, hy_u_list, spike_list = self.model(input_tensor)
+                last_hy = hy_list[-1].cpu()  # opzionale: altro stato
+                last_spikes = spike_list[-1].cpu()  # spike al timestep finale
         except Exception as e:
             rospy.logerr(f"[MRON] Error in callback: {e}")
 

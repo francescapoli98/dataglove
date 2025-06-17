@@ -8,8 +8,8 @@
     <arg name="obj" default="data" />
     <!-- argument to be passed to the glove data getter. It will be used to name the bag file. -->
                             <!-- FOR DEBUGGING: -->
-    <!-- <node name="fake_glove_pub" pkg="dataglove" type="fake_glove_pub.py" output="screen"/> -->
-    <node name="node_getter" pkg="dataglove" type="node_getter.py" output="screen" args="record"/>
+    <node name="fake_glove_pub" pkg="dataglove" type="fake_glove_pub.py" output="screen"/>
+    <!-- <node name="node_getter" pkg="dataglove" type="node_getter.py" output="screen" args="record"/> -->
     <!-- publisher: takes the data stream from the glove and publishes it as a ROS topic. -->
 
     <node name="node_printer" pkg="dataglove" type="node_printer.py" output="screen"  args="record"/> 
