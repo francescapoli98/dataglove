@@ -3,11 +3,16 @@
 import rospy
 import torch
 import os
+import traceback
 import inspect
 import numpy as np
+from joblib import load
+import json
 from std_msgs.msg import Float32MultiArray, Int16MultiArray
 from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import LogisticRegression
 from classification.mixed_ron import MixedRON
+import rospkg
 
 class MixedNode:
     def __init__(self):
@@ -15,64 +20,70 @@ class MixedNode:
 
         self.batch_size = rospy.get_param('/dataglove_params/buffer_size', 50)
         self.input_size = 21
-        # self.start_param = rospy.get_param('/dataglove_params/start_mixron')
         self.started = False
         self.mix_subscriber = None
-        # Load model
 
-        script_dir = os.path.dirname(os.path.abspath(__file__))  # path di node_mixedron.py
-        ckpt_path = os.path.join(script_dir, "models", "mixedron_checkpoint.pt")
+        # Trova la cartella del pacchetto e la directory dei modelli
+        rospack = rospkg.RosPack()
+        pkg_path = rospack.get_path('dataglove')
+        model_dir = os.path.join(pkg_path, 'models')
+
+        # Carica il modello MixedRON
+        ckpt_path = os.path.join(model_dir, "mixedron_checkpoint.pt")
         checkpoint = torch.load(ckpt_path, map_location='cpu', weights_only=False)
-        # checkpoint = torch.load("models/mixedron_checkpoint.pt", map_location='cpu')
         filtered_config = self.filter_model_args(MixedRON, checkpoint['config'])
         self.model = MixedRON(**filtered_config)
         self.model.load_state_dict(checkpoint['model_state_dict'])
         self.model.eval()
 
-        # Load or mock scaler
-        self.scaler = StandardScaler()
+        # Carica scaler e classificatore
+        self.scaler = load(os.path.join(model_dir, "mron_scaler.joblib"))
+        self.classifier = load(os.path.join(model_dir, "mron_classifier.joblib"))
+
+        # Carica il dizionario delle label
+        with open(os.path.join(model_dir, "label_map.json"), "r") as f:
+            self.label_map = json.load(f)
+
+        # Subscriber ROS
         self.mix_subscriber = rospy.Subscriber("/glove_buffer", Int16MultiArray, self.buffer_callback)
 
-        # if 'scaler_mean' in checkpoint and 'scaler_scale' in checkpoint:
-        #     self.scaler.mean_ = checkpoint['scaler_mean']
-        #     self.scaler.scale_ = checkpoint['scaler_scale']
-        # else:
-        #     self.scaler.mean_ = np.zeros(self.input_size)
-        #     self.scaler.scale_ = np.ones(self.input_size)
-
-        # Timer to check for start signal
-        # rospy.Timer(rospy.Duration(0.5), self.check_start)
-
-    # def check_start(self, _):
-    #     if not self.started and rospy.has_param(self.start_param):
-    #         start_val = rospy.get_param(self.start_param)
-    #         if start_val is True:
-    #             rospy.loginfo(f"[MRON] Starting node after start_param {self.start_param}")
-    #             self.started = True
-    #             self.sub = rospy.Subscriber("/glove_buffer", Int16MultiArray, self.buffer_callback)
-    #             rospy.delete_param(self.start_param)
-    
     @staticmethod
     def filter_model_args(model_class, config_dict):
-        # Get model init args except 'self'
-        valid_args = inspect.signature(model_class.__init__).parameters.keys()
-        valid_args = set(valid_args) - {'self'}
-
+        valid_args = set(inspect.signature(model_class.__init__).parameters.keys()) - {'self'}
         return {k: v for k, v in config_dict.items() if k in valid_args}
 
     def buffer_callback(self, msg):
         try:
             rospy.loginfo(f"[MRON] Starting node")
+
+            # Dati grezzi dal messaggio
             flat_data = np.array(msg.data, dtype=np.float32)
             buffer = flat_data.reshape((self.batch_size, self.input_size))
-            norm_data = self.scaler.fit_transform(buffer) 
-            input_tensor = torch.tensor(norm_data, dtype=torch.float32)
+
+            # Converti in tensore senza normalizzarlo prima
+            input_tensor = torch.tensor(buffer, dtype=torch.float32)
+
+            # Estrai le feature dal modello
             with torch.no_grad():
-                hy_list, hz_list, hy_u_list, spike_list = self.model(input_tensor)
-                last_hy = hy_list[-1].cpu()  # opzionale: altro stato
-                last_spikes = spike_list[-1].cpu()  # spike al timestep finale
+                model_output = self.model(input_tensor)[0]
+                if isinstance(model_output, list):
+                    model_output = model_output[0]
+
+                output = model_output[-1, :]  # (256,)
+                output_np = output.numpy().reshape(1, -1)  # shape: (1, 256)
+
+                # Ora normalizza le feature (non i dati grezzi!)
+                norm_output = self.scaler.transform(output_np)
+
+                # Classifica
+                pred = self.classifier.predict(norm_output)[0]
+                label = self.label_map[str(pred)] if str(pred) in self.label_map else pred
+                rospy.loginfo(f"[MRON] Predicted label: {label}")
+
         except Exception as e:
             rospy.logerr(f"[MRON] Error in callback: {e}")
+            rospy.logerr("[MRON] Full traceback:\n%s", traceback.format_exc())
+
 
     def run(self):
         rospy.spin()

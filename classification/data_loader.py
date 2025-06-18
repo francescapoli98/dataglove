@@ -49,6 +49,8 @@ def cut_from_threshold(df, threshold_col, threshold_value):
     """
     Given a time series dataframe for a single object sample,
     cut from the first time the threshold_col exceeds threshold_value.
+    More specifically, I want to consider the grasping as starting from the moment  
+    the palm_arch exceeds 100 (is more than 0 and its near values, and spikes)
     """
     # Find the index where the threshold is first exceeded
     start_idx = df[df[threshold_col] >= threshold_value].index.min()
@@ -77,6 +79,9 @@ def get_data(folder_path, bs_train=32, bs_test=32, valid_perc=10.0):
     combined_df = pd.concat(df_list, ignore_index=True)#.dropna()
     combined_df.drop(list(combined_df.filter(regex='header')), axis=1, inplace=True)
     combined_df.columns = combined_df.columns.str.removeprefix('.') 
+    combined_df = cut_from_threshold(combined_df, 'palm_arch', 100)
+
+
     # print(combined_df.info())
     # print(combined_df.head())
 

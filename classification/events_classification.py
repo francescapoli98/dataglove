@@ -7,6 +7,8 @@ import warnings
 import numpy as np
 import torch
 import rospy
+from joblib import dump
+import json
 import torch.nn.utils
 from sklearn import preprocessing
 from sklearn.linear_model import LogisticRegression
@@ -52,11 +54,11 @@ device = (
     else torch.device("cpu")
 )
 
-gamma = (args.gamma - args.gamma_range / 2.0, args.gamma + args.gamma_range / 2.0)
-epsilon = (
-    args.epsilon - args.epsilon_range / 2.0,
-    args.epsilon + args.epsilon_range / 2.0,
-)
+# gamma = (args.gamma - args.gamma_range / 2.0, args.gamma + args.gamma_range / 2.0)
+# epsilon = (
+#     args.epsilon - args.epsilon_range / 2.0,
+#     args.epsilon + args.epsilon_range / 2.0,
+# )
 
 train_accs, valid_accs, test_accs = [], [], []
 for i in range(args.trials):
@@ -72,8 +74,12 @@ for i in range(args.trials):
             n_inp,
             args.n_hid,
             args.dt,
-            gamma,
-            epsilon,
+            args.gamma,
+            args.gamma_range,
+            args.epsilon,
+            args.epsilon_range,
+            # gamma,
+            # epsilon,
             args.rho,
             args.input_scaling,
             args.threshold,
@@ -97,8 +103,12 @@ for i in range(args.trials):
             n_inp,
             args.n_hid,
             args.dt,
-            gamma,
-            epsilon,
+            # gamma,
+            # epsilon,
+            args.gamma,
+            args.gamma_range,
+            args.epsilon,
+            args.epsilon_range,
             args.rho,
             args.input_scaling,
             args.threshold,
@@ -127,8 +137,10 @@ for i in range(args.trials):
             n_inp,
             args.n_hid,
             args.dt,
-            gamma,
-            epsilon,
+            args.gamma,
+            args.gamma_range,
+            args.epsilon,
+            args.epsilon_range,
             args.rho,
             args.input_scaling,
             args.threshold,
@@ -139,7 +151,7 @@ for i in range(args.trials):
             topology=args.topology,
             sparsity=args.sparsity,
             reservoir_scaler=args.reservoir_scaler,
-            device=args.device#device,
+            device=args.device
         ).to(device) 
         torch.save({
             'model_state_dict': model.state_dict(),
@@ -200,12 +212,37 @@ for i in range(args.trials):
 # simple_plot(train_accs, valid_accs, test_accs, args.resultroot)
 
 
+
+label_map = {
+    0: "soft-bottle",
+    1: "soft-ball",
+    2: "hard-bottle",
+    3: "hard-ball"
+}
+
+# Salva il dizionario label → nome
+with open("models/label_map.json", "w") as f:
+    json.dump(label_map, f)
+
+
 if args.sron:
     f = open(os.path.join(args.resultroot, f"log_SRON{args.resultsuffix}.txt"), "a")
+    # Salva il classificatore
+    dump(classifier, "models/sron_classifier.joblib")
+    dump(scaler, "models/sron_scaler.joblib")
+
 elif args.liquidron:
     f = open(os.path.join(args.resultroot, f"log_LiquidRON{args.resultsuffix}.txt"), "a")
+    # Salva il classificatore
+    dump(classifier, "models/lsm_classifier.joblib")
+    dump(scaler, "models/lsm_scaler.joblib")
+
 elif args.mixron:
     f = open(os.path.join(args.resultroot, f"log_MixedRON{args.resultsuffix}.txt"), "a")
+    # Salva il classificatore
+    dump(classifier, "models/mron_classifier.joblib")
+    dump(scaler, "models/mron_scaler.joblib")
+
 else:
     raise ValueError("Wrong model choice.")
 

@@ -33,17 +33,17 @@ class MixedRON(nn.Module):
         n_inp: int,
         n_hid: int,
         dt: float,
-        gamma: Union[float, Tuple[float, float]],
-        epsilon: Union[float, Tuple[float, float]],
+        gamma: float,  # Default value if not provided
+        gamma_range: float,  # Range for random sampling
+        epsilon: float,  # Default value if not provided
+        epsilon_range: float,  # Range for random sampling
         rho: float,
         input_scaling: float,
         threshold: float,
-        # resistance: float,
-        # capacitance: float,
         rc: float,
         reset: float,
         bias: float,
-        perc:float,
+        perc: float,
         topology: Literal[
             "full", "lower", "orthogonal", "band", "ring", "toeplitz"
         ] = "full",
@@ -79,24 +79,29 @@ class MixedRON(nn.Module):
         self.dt = dt
         self.p = perc ## FINE TUNE
         self.portion = int(n_hid*perc)
-        if isinstance(gamma, tuple):
-            gamma_min, gamma_max = gamma
+        self.gamma = (gamma - gamma_range / 2.0, gamma + gamma_range / 2.0)
+        self.epsilon = (
+            epsilon - epsilon_range / 2.0,
+            epsilon + epsilon_range / 2.0,
+        )
+        if isinstance(self.gamma, tuple):
+            gamma_min, gamma_max = self.gamma
             self.gamma = (
                 torch.rand(n_hid, requires_grad=False, device=device)
                 * (gamma_max - gamma_min)
                 + gamma_min
             )
-        else:
-            self.gamma = gamma
-        if isinstance(epsilon, tuple):
-            eps_min, eps_max = epsilon
+        # else:
+        #     self.gamma = gamma
+        if isinstance(self.epsilon, tuple):
+            eps_min, eps_max = self.epsilon
             self.epsilon = (
                 torch.rand(n_hid, requires_grad=False, device=device)
                 * (eps_max - eps_min)
                 + eps_min
             )
-        else:
-            self.epsilon = epsilon
+        # else:
+        #     self.epsilon = epsilon
             
         #### TO BE DIVIDED IN SPIKING AND HARMONIC
        

@@ -19,7 +19,7 @@
     TO AVOID PALLEL TASKS: use an external parameter to be put in the YAML to call them in succession even though they're all loaded here-->
 
     <!-- Subscriber model 1 -->
-    <node name="node_sron" pkg="dataglove" type="node_sron.py" output="screen"/>
+    <!-- <node name="node_sron" pkg="dataglove" type="node_sron.py" output="screen"/> -->
         <!-- <param name="start_param" value="/start_sron"/> -->
     <!-- </node> -->
 
