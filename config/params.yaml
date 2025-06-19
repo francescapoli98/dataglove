@@ -2,7 +2,7 @@
 serial:
   port: "/dev/ttyUSB0"
   baudrate: 230400
-  rate: 10
+  rate: 100
 
 # Classification params
 model: 
@@ -14,24 +14,24 @@ model:
   batch: 128
   dt: 0.042
   gamma: 2.7
-  epsilon: 4.7
-  gamma_range: 2.5
-  epsilon_range: 4.5
+  epsilon: 4.7 
+  gamma_range: 1.5
+  epsilon_range: 1.5
   device: "cpu"  # choices: ["cpu", "cuda"]
   input_scaling: 1.0
   rho: 0.99
-  leaky: 1.0
+  leaky: 10.0
   use_test: true
   trials: 1
   topology: "full"  # choices: ["full", "ring", "band", "lower", "toeplitz", "orthogonal"]
   sparsity: 0.0
   reservoir_scaler: 1.0
-  threshold: 0.5
-  rc: 100.0
+  threshold: 1.0
+  rc: 10.0
   reset: 0.01
-  bias: 0.01
+  bias: 0.001
   #mixron
-  perc: 0.5
+  perc: 0.3
   #lsm
   win_e: 1
   win_i: 0.5
@@ -40,9 +40,10 @@ model:
   Ne: 200
   Ni: 56
   #model choice
-  sron: false 
-  mixron: false 
-  liquidron: true
+  sron: false
+  mixron: false
+  liquidron: false
+  snn: true
 
 #labels
 rigidity: {'hard': 1, 'soft': 0}

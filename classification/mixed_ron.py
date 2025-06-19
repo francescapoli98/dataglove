@@ -87,7 +87,7 @@ class MixedRON(nn.Module):
         if isinstance(self.gamma, tuple):
             gamma_min, gamma_max = self.gamma
             self.gamma = (
-                torch.rand(n_hid, requires_grad=False, device=device)
+                torch.rand(n_hid, requires_grad=True, device=device)
                 * (gamma_max - gamma_min)
                 + gamma_min
             )
@@ -96,7 +96,7 @@ class MixedRON(nn.Module):
         if isinstance(self.epsilon, tuple):
             eps_min, eps_max = self.epsilon
             self.epsilon = (
-                torch.rand(n_hid, requires_grad=False, device=device)
+                torch.rand(n_hid, requires_grad=True, device=device)
                 * (eps_max - eps_min)
                 + eps_min
             )

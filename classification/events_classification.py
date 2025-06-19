@@ -17,6 +17,8 @@ from tqdm import tqdm
 from classification.lsm import LiquidStateMachine
 from classification.s_ron import SpikingRON
 from classification.mixed_ron import MixedRON
+from classification.snn import SNNNet
+
 
 from classification.utils import *
 from classification.data_loader import *
@@ -28,7 +30,7 @@ with open("/home/frankie/catkin_ws/src/dataglove/config/params.yaml", "r") as f:
     config = yaml.safe_load(f)
 # Convert to a namespace to mimic argparse
 model_config = config['model']
-rospy.loginfo(model_config)
+# rospy.loginfo(model_config)
 args = argparse.Namespace(**model_config)
 
 
@@ -157,6 +159,19 @@ for i in range(args.trials):
             'model_state_dict': model.state_dict(),
             'config': args.__dict__,  # Converts Namespace to dict
             }, "models/mixedron_checkpoint.pt")
+    elif args.snn:
+            # if args.sron:
+        model = SNNNet(
+            n_inp,
+            args.n_hid,
+            args.dt,
+            device=args.device
+            # device=device,
+        ).to(device)
+        torch.save({
+            'model_state_dict': model.state_dict(),
+            'config': args.__dict__,  # Converts Namespace to dict
+            }, "models/snn_checkpoint.pt")
     else:
         raise ValueError("Wrong model choice.")
     
@@ -172,7 +187,7 @@ for i in range(args.trials):
         # print(values.size())
 
         
-        if args.liquidron:
+        if (args.liquidron or args.snn):
             output, spk = model(values)
         else:
             output, velocity, u, spk = model(values) 
@@ -194,7 +209,7 @@ for i in range(args.trials):
     
     activations = torch.cat(activations, dim=0).detach().numpy() # activations = torch.cat(activations, dim=0).numpy()  
     ys = torch.cat(ys, dim=0).squeeze().numpy()
-    # print("Activations shape:", activations.shape)
+    print("Activations shape:", activations.shape)
     # print("Labels shape:", ys.shape)  
 
     scaler = preprocessing.StandardScaler()
@@ -242,6 +257,11 @@ elif args.mixron:
     # Salva il classificatore
     dump(classifier, "models/mron_classifier.joblib")
     dump(scaler, "models/mron_scaler.joblib")
+elif args.snn:
+    f = open(os.path.join(args.resultroot, f"SNN{args.resultsuffix}.txt"), "a")
+    # Salva il classificatore
+    dump(classifier, "models/snn_classifier.joblib")
+    dump(scaler, "models/snn_scaler.joblib")
 
 else:
     raise ValueError("Wrong model choice.")

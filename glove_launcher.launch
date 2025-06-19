@@ -8,11 +8,11 @@
     <arg name="obj" default="data" />
     <!-- argument to be passed to the glove data getter. It will be used to name the bag file. -->
                             <!-- FOR DEBUGGING: -->
-    <node name="fake_glove_pub" pkg="dataglove" type="fake_glove_pub.py" output="screen"/>
-    <!-- <node name="node_getter" pkg="dataglove" type="node_getter.py" output="screen" args="record"/> -->
+    <!-- <node name="fake_glove_pub" pkg="dataglove" type="fake_glove_pub.py" output="screen"/> -->
+    <node name="node_raw_dataglove" pkg="dataglove" type="node_raw_dataglove.py" output="screen" args="record"/>
     <!-- publisher: takes the data stream from the glove and publishes it as a ROS topic. -->
 
-    <node name="node_printer" pkg="dataglove" type="node_printer.py" output="screen"  args="record"/> 
+    <node name="node_data_to_models" pkg="dataglove" type="node_data_to_models.py" output="screen"  args="record"/> 
     <!-- subscriber: takes the data stream from the glove and sends it to the classifier -->
 
     <!-- INSERT HERE: subscribers that get the data stream and pass it to the models for testing 
@@ -24,19 +24,24 @@
     <!-- </node> -->
 
     <!-- Subscriber model 2 -->
-    <node name="node_mixron" pkg="dataglove" type="node_mixron.py" output="screen"/>
+    <!-- <node name="node_mixron" pkg="dataglove" type="node_mixron.py" output="screen"/> -->
         <!-- <param name="start_param" value="/start_mixron"/> -->
     <!-- </node> -->
 
-     <!-- Subscriber model 3 ?-->
-    <node name="node_lsm" pkg="dataglove" type="node_lsm.py" output="screen"/>
+     <!-- Subscriber model 3 -->
+    <!-- <node name="node_lsm" pkg="dataglove" type="node_lsm.py" output="screen"/> -->
         <!-- <param name="start_param" value="/start_lsm"/> -->
     <!-- </node> -->
 
-    <!-- Controller (obsolete) -->
-    <!-- <node name="node_controller" pkg="dataglove" type="node_controller.py" output="screen" /> -->
+    <!-- Subscriber model 4 -->
+    <node name="node_snn" pkg="dataglove" type="node_snn.py" output="screen"/>
+
 
     <!-- <node pkg="rosbag" type="record" name="rosbag_record" respawn="true" output="screen" args="-o $(find dataglove)/bags/$(arg obj) /glove_data" /> -->
     <!-- recording the data automatically in a .bag file -->
     
 </launch>
+
+    <!-- Controller (obsolete) -->
+    <!-- <node name="node_controller" pkg="dataglove" type="node_controller.py" output="screen" /> -->
+

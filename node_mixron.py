@@ -16,8 +16,6 @@ import rospkg
 
 class MixedNode:
     def __init__(self):
-        rospy.init_node("node_mixron", anonymous=True)
-
         self.batch_size = rospy.get_param('/dataglove_params/buffer_size', 50)
         self.input_size = 21
         self.started = False
@@ -59,6 +57,11 @@ class MixedNode:
             # Dati grezzi dal messaggio
             flat_data = np.array(msg.data, dtype=np.float32)
             buffer = flat_data.reshape((self.batch_size, self.input_size))
+            palm_arch_values = buffer[:, 10]
+
+            if not np.any(palm_arch_values > 0):
+                rospy.loginfo(f"[MRON] Waiting for grasping to start")
+                return
 
             # Converti in tensore senza normalizzarlo prima
             input_tensor = torch.tensor(buffer, dtype=torch.float32)
@@ -90,6 +93,8 @@ class MixedNode:
 
 if __name__ == '__main__':
     try:
+        rospy.init_node("node_mixron")
+
         node = MixedNode()
         node.run()
     except rospy.ROSInterruptException:
