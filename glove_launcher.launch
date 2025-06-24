@@ -19,22 +19,19 @@
     TO AVOID PALLEL TASKS: use an external parameter to be put in the YAML to call them in succession even though they're all loaded here-->
 
     <!-- Subscriber model 1 -->
-    <!-- <node name="node_sron" pkg="dataglove" type="node_sron.py" output="screen"/> -->
-        <!-- <param name="start_param" value="/start_sron"/> -->
-    <!-- </node> -->
+    <node name="node_sron" pkg="dataglove" type="node_sron.py" output="screen" launch-prefix="xterm -e"/>
+
 
     <!-- Subscriber model 2 -->
-    <!-- <node name="node_mixron" pkg="dataglove" type="node_mixron.py" output="screen"/> -->
-        <!-- <param name="start_param" value="/start_mixron"/> -->
-    <!-- </node> -->
+    <!-- <node name="node_mixron" pkg="dataglove" type="node_mixron.py" output="screen" launch-prefix="xterm -e"/> -->
+
 
      <!-- Subscriber model 3 -->
-    <!-- <node name="node_lsm" pkg="dataglove" type="node_lsm.py" output="screen"/> -->
-        <!-- <param name="start_param" value="/start_lsm"/> -->
-    <!-- </node> -->
+    <node name="node_lsm" pkg="dataglove" type="node_lsm.py" output="screen" launch-prefix="xterm -e"/>
+
 
     <!-- Subscriber model 4 -->
-    <node name="node_snn" pkg="dataglove" type="node_snn.py" output="screen"/>
+    <node name="node_snn" pkg="dataglove" type="node_snn.py" output="screen" launch-prefix="xterm -e"/>
 
 
     <!-- <node pkg="rosbag" type="record" name="rosbag_record" respawn="true" output="screen" args="-o $(find dataglove)/bags/$(arg obj) /glove_data" /> -->

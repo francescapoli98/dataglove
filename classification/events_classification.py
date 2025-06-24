@@ -66,7 +66,7 @@ train_accs, valid_accs, test_accs = [], [], []
 for i in range(args.trials):
 
     train_loader, valid_loader, test_loader = get_data(
-        args.dataroot, bs_train=16, bs_test=16, valid_perc=10.0
+        args.dataroot, bs_train=128, bs_test=128, valid_perc=10.0
     )
 
     n_inp = train_loader.dataset[0][0].shape[0]  # Assuming the first dimension is the input size
@@ -164,7 +164,8 @@ for i in range(args.trials):
         model = SNNNet(
             n_inp,
             args.n_hid,
-            args.dt,
+            args.leaky,
+            # args.input_scaling,
             device=args.device
             # device=device,
         ).to(device)

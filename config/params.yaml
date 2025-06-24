@@ -2,7 +2,7 @@
 serial:
   port: "/dev/ttyUSB0"
   baudrate: 230400
-  rate: 100
+  rate: 200 #100 fallback
 
 # Classification params
 model: 
@@ -20,7 +20,7 @@ model:
   device: "cpu"  # choices: ["cpu", "cuda"]
   input_scaling: 1.0
   rho: 0.99
-  leaky: 10.0
+  leaky: 0.9
   use_test: true
   trials: 1
   topology: "full"  # choices: ["full", "ring", "band", "lower", "toeplitz", "orthogonal"]

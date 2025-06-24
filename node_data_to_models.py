@@ -29,7 +29,7 @@ class PrintNode:
         self.buffer_pub = rospy.Publisher('glove_buffer', ClassificationData, queue_size=1) #Int16MultiArray
         log_path = os.path.join(os.path.expanduser('~'), 'latency_log.txt')
         self.log_file = open(log_path, 'a')
-        rospy.loginfo(f"[Printer] Latency log file opened")
+        # rospy.loginfo(f"[Printer] Latency log file opened")
 
 
     def callback(self, msg):

@@ -8,6 +8,7 @@ import inspect
 import numpy as np
 from joblib import load
 import json
+import csv
 from dataglove.msg import ClassificationData  # replace with your actual msg name
 from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LogisticRegression
@@ -39,23 +40,33 @@ class SNNNode:
             self.label_map = json.load(f)
 
         self.log_file_path = os.path.join(os.path.expanduser('~'), 'snn_latency_log.txt')
+        self.predtime_file_path = os.path.join(os.path.expanduser('~'), 'snn_predict_lat.txt')
+        self.last_label = None  # Store last prediction
+
 
         # Subscribe to your custom message with header and data[]
         self.mix_subscriber = rospy.Subscriber("/glove_buffer", ClassificationData, self.buffer_callback)
+        rospy.loginfo(f"[SNN] Starting node")
+
 
     @staticmethod
     def filter_model_args(model_class, config_dict):
         valid_args = set(inspect.signature(model_class.__init__).parameters.keys()) - {'self'}
         return {k: v for k, v in config_dict.items() if k in valid_args}
+    
+    @staticmethod
+    def append_to_csv(pred, label, file_path):
+        timestamp = rospy.Time.now().to_sec() 
+        with open(file_path, mode='a', newline='') as f:
+            writer = csv.writer(f)
+            writer.writerow([timestamp, pred, label])
 
     def buffer_callback(self, msg):
         try:
-            rospy.loginfo(f"[SNN] Starting node")
-
             # Calculate latency
             now = rospy.Time.now()
             latency = (now - msg.header.stamp).to_sec() * 1000.0  # in milliseconds
-            rospy.loginfo(f"[SNN] Message latency: {latency:.2f} ms")
+            # rospy.loginfo(f"[SNN] Message latency: {latency:.2f} ms")
             with open(self.log_file_path, 'a') as f:
                 f.write(f"{latency:.3f}\n")
 
@@ -64,7 +75,6 @@ class SNNNode:
 
             palm_arch_values = buffer[:, 10]
             if not np.any(palm_arch_values > 0):
-                rospy.loginfo(f"[SNN] Waiting for grasping to start")
                 return
 
             input_tensor = torch.tensor(buffer, dtype=torch.float32)
@@ -78,10 +88,20 @@ class SNNNode:
                 output_np = output.numpy().reshape(1, -1)
 
                 norm_output = self.scaler.transform(output_np)
-
+                ##start time
+                before_pred = rospy.Time.now()
                 pred = self.classifier.predict(norm_output)[0]
+                ## end time
+                after_pred = rospy.Time.now()
+                pred_time = (after_pred - before_pred).to_sec() * 1000.0  # in milliseconds
+                with open(self.predtime_file_path, 'a') as f:
+                    f.write(f"{(pred_time):.3f}\n")
+                
                 label = self.label_map.get(str(pred), pred)
-                rospy.loginfo(f"[SNN] Predicted label: {label}")
+                self.append_to_csv(pred, label, os.path.join(os.path.expanduser('~'), 'snn_predictions_hardbottle.csv'))
+                if str(label) != str(self.last_label):
+                    rospy.loginfo(f"[SNN] Predicted label: {label}")
+                self.last_label = label  # Update last prediction
 
         except Exception as e:
             rospy.logerr(f"[SNN] Error in callback: {e}")
