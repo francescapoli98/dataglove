@@ -21,8 +21,8 @@ args = argparse.Namespace(**config)
 
 class GloveDataset(Dataset):
     def __init__(self, dataframe):
-        self.features = dataframe.drop(columns=["time", "rigidity", "object"])
-        self.labels = dataframe.apply(lambda row: ((row["rigidity"]*2) + row["object"]), axis=1)
+        self.features = dataframe.drop(columns=["time", "stiffness", "object"])
+        self.labels = dataframe.apply(lambda row: ((row["stiffness"]*2) + row["object"]), axis=1)
 
     def __len__(self):
         return len(self.features)
@@ -65,7 +65,7 @@ def get_data(folder_path, bs_train=32, bs_test=32, valid_perc=10.0):
     csv_files = []
     for f in os.listdir(folder_path):
         if f.endswith('.csv'):
-            add_cols(folder_path, f, 'rigidity', args.rigidity)
+            add_cols(folder_path, f, 'stiffness', args.stiffness)
             add_cols(folder_path, f, 'object', args.obj)
             csv_files.append(f)
 

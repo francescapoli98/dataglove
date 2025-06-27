@@ -33,6 +33,18 @@ model_config = config['model']
 # rospy.loginfo(model_config)
 args = argparse.Namespace(**model_config)
 
+label_map = {
+    0: "soft-bottle",
+    1: "soft-ball",
+    2: "hard-bottle",
+    3: "hard-ball"
+}
+
+# Salva il dizionario label → nome
+with open("models/label_map.json", "w") as f:
+    json.dump(label_map, f)
+
+
 
 @torch.no_grad()
 def test(data_loader, classifier, scaler):
@@ -229,16 +241,6 @@ for i in range(args.trials):
 
 
 
-label_map = {
-    0: "soft-bottle",
-    1: "soft-ball",
-    2: "hard-bottle",
-    3: "hard-ball"
-}
-
-# Salva il dizionario label → nome
-with open("models/label_map.json", "w") as f:
-    json.dump(label_map, f)
 
 
 if args.sron:

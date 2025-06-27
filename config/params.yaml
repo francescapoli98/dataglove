@@ -20,33 +20,33 @@ model:
   device: "cpu"  # choices: ["cpu", "cuda"]
   input_scaling: 1.0
   rho: 0.99
-  leaky: 0.9
+  leaky: 1.2
   use_test: true
   trials: 1
   topology: "full"  # choices: ["full", "ring", "band", "lower", "toeplitz", "orthogonal"]
   sparsity: 0.0
   reservoir_scaler: 1.0
   threshold: 1.0
-  rc: 10.0
-  reset: 0.01
+  rc: 40.0
+  reset: 0.001
   bias: 0.001
   #mixron
   perc: 0.3
   #lsm
-  win_e: 1
-  win_i: 0.5
-  w_e: 1
-  w_i: 0.5
+  win_e: 1.5
+  win_i: 1.5
+  w_e: 1.5
+  w_i: 1.5
   Ne: 200
   Ni: 56
   #model choice
   sron: false
-  mixron: false
+  # mixron: false
   liquidron: false
-  snn: true
+  snn: false
 
 #labels
-rigidity: {'hard': 1, 'soft': 0}
+stiffness: {'hard': 1, 'soft': 0}
 obj: {'ball': 1, 'bottle': 0}
 
 # start_sron: false
