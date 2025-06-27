@@ -9,7 +9,7 @@ import numpy as np
 from joblib import load
 import json
 import csv
-from dataglove.msg import ClassificationData  # replace with your actual msg name
+from dataglove.msg import ClassificationData  
 from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LogisticRegression
 from classification.s_ron import SpikingRON
@@ -43,10 +43,9 @@ class SRONNode:
         self.predtime_file_path = os.path.join(os.path.expanduser('~'), 'sron_predict_lat.txt')
         self.last_label = None  # Store last prediction
 
-        # Subscribe to your custom message with header and data[]
+        # Subscribe to your custom message 
         self.mix_subscriber = rospy.Subscriber("/glove_buffer", ClassificationData, self.buffer_callback)
         rospy.loginfo(f"[SRON] Starting node")
-        # Initialize log file
 
     @staticmethod
     def filter_model_args(model_class, config_dict):
@@ -66,7 +65,6 @@ class SRONNode:
             # Calculate latency
             now = rospy.Time.now()
             latency = (now - msg.header.stamp).to_sec() * 1000.0  # in milliseconds
-            # rospy.loginfo(f"[SNN] Message latency: {latency:.2f} ms")
             with open(self.log_file_path, 'a') as f:
                 f.write(f"{latency:.3f}\n")
 
@@ -75,7 +73,6 @@ class SRONNode:
 
             palm_arch_values = buffer[:, 10]
             if not np.any(palm_arch_values > 0):
-                # rospy.loginfo(f"[SRON] Waiting for grasping to start")
                 return
 
             input_tensor = torch.tensor(buffer, dtype=torch.float32)

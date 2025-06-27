@@ -9,7 +9,6 @@ import time
 from std_msgs.msg import Header 
 from dataglove.msg import SensorsData #DataPrint
 from vmg30 import *
-# from sensor_msgs.msg import JointState    ### firstly used that, realised it's not correct
 
 
 class GloveNode:
@@ -30,13 +29,6 @@ class GloveNode:
         # Sensor data
         self.print_data = SensorsData()
 
-        # Buffer
-        # self.batch_size = rospy.get_param('buffer_size')
-        # self.input_dim = input_dim
-        # self.buffer = torch.zeros((batch_size, input_dim))
-        # self.index = 0
-        # self.model = self.load_model()
-        
        
     
     def read_data(self):
@@ -60,28 +52,6 @@ class GloveNode:
 
                 for field, idx in sensors_map.items():
                     setattr(self.print_data, field, int(sensors[idx]))
-                # self.print_data.header.stamp = rospy.Time.now()
-                # self.print_data.thumb_2 = sensors[0]
-                # self.print_data.thumb_1 = sensors[1]
-                # self.print_data.index_2 = sensors[2]
-                # self.print_data.index_1 = sensors[3]
-                # self.print_data.middle_2 = sensors[4]
-                # self.print_data.middle_1 = sensors[5]
-                # self.print_data.ring_2 = sensors[6]
-                # self.print_data.ring_1 = sensors[7]
-                # self.print_data.little_2 = sensors[8]
-                # self.print_data.little_1 = sensors[9]
-                # self.print_data.palm_arch = sensors[10]
-                # self.print_data.thumb_crossover = sensors[12]
-                # self.print_data.press_thumb = sensors[14]
-                # self.print_data.press_index = sensors[15]
-                # self.print_data.press_middle = sensors[16]
-                # self.print_data.press_ring = sensors[17]
-                # self.print_data.press_little = sensors[18]
-                # self.print_data.abd_thumb = sensors[19]
-                # self.print_data.abd_index = sensors[20]
-                # self.print_data.abd_ring = sensors[21]
-                # self.print_data.abd_little = sensors[22]
                 self.vmg30.reset_new_packet()
                 self.pub.publish(self.print_data)
         except serial.SerialException as e:
